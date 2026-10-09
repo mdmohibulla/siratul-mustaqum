@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>অ্যাডমিন | সিরাতুল মুস্তাকিম</title>
+<style>
+body{margin:0;font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#f4f1ea;color:#1c2b26}
+header{background:#123d32;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+main{max-width:1100px;margin:20px auto;padding:0 14px}
+.box{background:#fff;border-radius:14px;padding:20px;border:1px solid #ddd;max-width:380px;margin:40px auto}
+input{width:100%;box-sizing:border-box;padding:10px;margin:6px 0 12px;border:1px solid #bbb;border-radius:8px;font-size:15px}
+button{background:#123d32;color:#fff;border:0;padding:10px 16px;border-radius:8px;font-size:15px;cursor:pointer}
+button.alt{background:#fff;color:#123d32;border:1px solid #123d32}
+button.on{background:#123d32;color:#fff}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.wrap{overflow-x:auto;background:#fff;border-radius:12px;border:1px solid #ddd}
+table{border-collapse:collapse;width:100%;min-width:700px}
+th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;vertical-align:top;font-size:14px}
+th{background:#eef3f0}
+#msg{color:#b00020;min-height:20px}
+.hide{display:none}
+</style>
+</head>
+<body>
+<header><strong>অ্যাডমিন প্যানেল</strong><button class="alt hide" id="out">লগআউট</button></header>
+<main>
+<div class="box" id="login">
+<h3>লগইন করুন</h3>
+<label>ইমেইল<input id="em" type="email" autocomplete="username"></label>
+<label>পাসওয়ার্ড<input id="pw" type="password" autocomplete="current-password"></label>
+<button id="go">প্রবেশ করুন</button>
+<p id="msg"></p>
+</div>
+<div id="panel" class="hide">
+<div class="bar">
+<button id="t1" class="on">সাহায্যের আবেদন</button>
+<button id="t2" class="alt">সদস্য আবেদন</button>
+<button id="csv" class="alt">CSV ডাউনলোড</button>
+<span id="count"></span>
+</div>
+<div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+</div>
+</main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const COLS={
+help_requests:[['created_at','তারিখ'],['name','নাম'],['phone','ফোন'],['area','এলাকা'],['type','ধরন'],['details','বিবরণ']],
+member_applications:[['created_at','তারিখ'],['name','নাম'],['phone','ফোন'],['area','এলাকা'],['occupation','পেশা'],['reason','কারণ']]};
+let token=sessionStorage.getItem('tk'),table='help_requests',rows=[];
+const $=id=>document.getElementById(id);
+function show(){const ok=!!token;$('login').classList.toggle('hide',ok);$('panel').classList.toggle('hide',!ok);$('out').classList.toggle('hide',!ok);if(ok)load();}
+async function login(){
+ $('msg').textContent='';
+ try{
+  const r=await fetch(URL_+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email:$('em').value.trim(),password:$('pw').value})});
+  const j=await r.json();
+  if(!r.ok||!j.access_token)throw 0;
+  token=j.access_token;sessionStorage.setItem('tk',token);$('pw').value='';show();
+ }catch(e){$('msg').textContent='ইমেইল বা পাসওয়ার্ড ভুল।';}
+}
+function logout(){token=null;sessionStorage.removeItem('tk');show();}
+async function load(){
+ const r=await fetch(`${URL_}/rest/v1/${table}?select=*&order=created_at.desc`,{headers:{apikey:KEY,Authorization:'Bearer '+token}});
+ if(r.status===401){logout();return;}
+ rows=await r.json();if(!Array.isArray(rows))rows=[];
+ const th=$('th'),tb=$('tb');th.innerHTML='';tb.innerHTML='';
+ const hr=document.createElement('tr');
+ COLS[table].forEach(c=>{const e=document.createElement('th');e.textContent=c[1];hr.appendChild(e);});th.appendChild(hr);
+ rows.forEach(row=>{const tr=document.createElement('tr');
+  COLS[table].forEach(c=>{const td=document.createElement('td');let v=row[c[0]]??'';
+   if(c[0]==='created_at')v=new Date(v).toLocaleString('bn-BD');td.textContent=v;tr.appendChild(td);});
+  tb.appendChild(tr);});
+ $('count').textContent='মোট: '+rows.length+' টি';
+}
+function tab(t){table=t;$('t1').className=t==='help_requests'?'on':'alt';$('t2').className=t==='member_applications'?'on':'alt';load();}
+function csv(){
+ const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+ const lines=[COLS[table].map(c=>q(c[1])).join(',')].concat(rows.map(r=>COLS[table].map(c=>q(r[c[0]])).join(',')));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=table+'.csv';a.click();
+}
+$('go').onclick=login;$('out').onclick=logout;$('t1').onclick=()=>tab('help_requests');$('t2').onclick=()=>tab('member_applications');$('csv').onclick=csv;
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+show();
+</script>
+</body>
+</html>
