@@ -1,5 +1,5 @@
-const SUPABASE_URL = 'আপনার_PROJECT_URL';
-const SUPABASE_KEY = 'আপনার_ANON_KEY';
+const SUPABASE_URL = 'https://dgsxzwutsstfsezvlkmh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 
 const menuToggle = document.getElementById('menuToggle');
 const nav = document.getElementById('nav');
@@ -33,38 +33,36 @@ document.querySelectorAll('.copy-btn').forEach(button => {
   });
 });
 
-document.getElementById('helpForm')?.addEventListener('submit', async event => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const note = document.getElementById('formNote');
-  const btn = form.querySelector('button[type="submit"]');
-  if (SUPABASE_URL.includes('PROJECT_URL')) {
-    note.textContent = 'ফর্ম এখনও চালু হয়নি। script.js-এ Supabase URL ও KEY বসান।';
-    return;
-  }
-  const data = new FormData(form);
-  btn.disabled = true;
-  note.textContent = 'পাঠানো হচ্ছে...';
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/help_requests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        name: data.get('name'), phone: data.get('phone'), area: data.get('area'),
-        type: data.get('type'), details: data.get('details')
-      })
-    });
-    if (!res.ok) throw new Error('failed');
-    form.reset();
-    note.textContent = 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।';
-  } catch (e) {
-    note.textContent = 'পাঠানো যায়নি। আবার চেষ্টা করুন।';
-  } finally {
-    btn.disabled = false;
-  }
+// ফর্ম আইডি -> Supabase টেবিলের নাম
+[['helpForm', 'help_requests'], ['memberForm', 'member_applications']].forEach(([id, table]) => {
+  document.getElementById(id)?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const note = form.querySelector('.form-note');
+    const btn = form.querySelector('button[type="submit"]');
+    if (!SUPABASE_URL) {
+      note.textContent = 'ফর্ম এখনও চালু হয়নি। script.js-এ Supabase URL ও KEY বসান।';
+      return;
+    }
+    btn.disabled = true;
+    note.textContent = 'পাঠানো হচ্ছে...';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(Object.fromEntries(new FormData(form)))
+      });
+      if (!res.ok) throw new Error('failed');
+      form.reset();
+      note.textContent = 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।';
+    } catch (e) {
+      note.textContent = 'পাঠানো যায়নি। আবার চেষ্টা করুন।';
+    } finally {
+      btn.disabled = false;
+    }
+  });
 });
