@@ -28,21 +28,42 @@ document.querySelectorAll('.copy-btn').forEach(button => {
   });
 });
 
-document.getElementById('helpForm').addEventListener('submit', event => {
+const SUPABASE_URL = 'আপনার_PROJECT_URL';
+const SUPABASE_KEY = 'আপনার_ANON_KEY';
+
+document.getElementById('helpForm').addEventListener('submit', async event => {
   event.preventDefault();
-  const data = new FormData(event.currentTarget);
-  const email = 'FOUNDATION_EMAIL_HERE'; // প্রকাশের আগে এখানে অফিসিয়াল ইমেইল বসান
-  if (email === 'FOUNDATION_EMAIL_HERE') {
-    document.getElementById('formNote').textContent =
-      'ফর্মের নমুনা যাচাই হয়েছে। আবেদন পাঠাতে script.js-এ FOUNDATION_EMAIL_HERE-এর জায়গায় ফাউন্ডেশনের অফিসিয়াল ইমেইল বসান। এখন কোনো তথ্য কোথাও সংরক্ষণ বা পাঠানো হচ্ছে না।';
-    alert('এটি ডেমো ফর্ম। আবেদন গ্রহণ চালু করতে অফিসিয়াল ইমেইল বা নিরাপদ ফর্ম-সেবা সেটআপ করতে হবে।');
-    return;
+  const form = event.currentTarget;
+  const note = document.getElementById('formNote');
+  const btn = form.querySelector('button[type="submit"]');
+  const data = new FormData(form);
+
+  btn.disabled = true;
+  note.textContent = 'পাঠানো হচ্ছে...';
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/help_requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        name: data.get('name'),
+        phone: data.get('phone'),
+        area: data.get('area'),
+        type: data.get('type'),
+        details: data.get('details')
+      })
+    });
+    if (!res.ok) throw new Error('failed');
+    form.reset();
+    note.textContent = 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।';
+  } catch (e) {
+    note.textContent = 'পাঠানো যায়নি। আবার চেষ্টা করুন।';
+  } finally {
+    btn.disabled = false;
   }
-  const subject = encodeURIComponent('সিরাতুল মুস্তাকিম — সহায়তার আবেদন');
-  const body = encodeURIComponent(
-    'নাম: ' + data.get('name') + '\nযোগাযোগ: ' + data.get('phone') +
-    '\nএলাকা: ' + data.get('area') + '\nসহায়তার ধরন: ' + data.get('type') +
-    '\nবিবরণ:\n' + data.get('details')
-  );
-  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 });
