@@ -8,8 +8,8 @@ nav?.querySelectorAll('a').forEach(link => link.addEventListener('click', () => 
   nav.classList.remove('open');
   menuToggle?.setAttribute('aria-expanded', 'false');
 }));
-document.getElementById('year').textContent = new Date().getFullYear();
-
+const yearEl = document.getElementById('year');
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 document.querySelectorAll('.copy-btn').forEach(button => {
   button.addEventListener('click', async () => {
     const value = button.dataset.copy;
@@ -31,7 +31,7 @@ document.querySelectorAll('.copy-btn').forEach(button => {
 const SUPABASE_URL = 'আপনার_PROJECT_URL';
 const SUPABASE_KEY = 'আপনার_ANON_KEY';
 
-document.getElementById('helpForm').addEventListener('submit', async event => {
+document.getElementById('helpForm')?.addEventListener('submit', async event => {
   event.preventDefault();
   const form = event.currentTarget;
   const note = document.getElementById('formNote');
