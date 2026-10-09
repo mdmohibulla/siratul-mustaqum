@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>মাসিক চাঁদা | সিরাতুল মুস্তাকিম</title>
+<style>
+body{margin:0;font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#f4f1ea;color:#1c2b26}
+header{background:#123d32;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header a{color:#fff}
+main{max-width:1000px;margin:20px auto;padding:0 14px}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;margin-bottom:14px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sum div{background:#eef3f0;border-radius:10px;padding:10px}
+.sum b{display:block;font-size:20px}
+input{padding:9px;border:1px solid #bbb;border-radius:8px;font-size:15px;margin:3px}
+button{background:#123d32;color:#fff;border:0;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px}
+button.alt{background:#fff;color:#123d32;border:1px solid #123d32}
+button.red{background:#b00020}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:9px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+th{background:#eef3f0}
+.ok{color:#0a7a3d;font-weight:700}.late{color:#b00020;font-weight:700}.due{color:#a36200;font-weight:700}
+</style>
+</head>
+<body>
+<header><strong>মাসিক চাঁদার হিসাব</strong><a href="admin.html">← অ্যাডমিন</a></header>
+<main>
+<div class="card" id="need" style="display:none">আগে <a href="admin.html">admin.html</a> এ লগইন করুন, তারপর এই পেজ খুলুন।</div>
+<div id="app" style="display:none">
+<div class="card"><label>মাস বেছে নিন: <input type="month" id="mon"></label></div>
+<div class="card sum"><div>সদস্য<b id="s1">০</b></div><div>প্রত্যাশিত<b id="s2">০</b></div><div>জমা হয়েছে<b id="s3">০</b></div><div>বাকি সদস্য<b id="s4">০</b></div></div>
+<div class="card wrap"><table><thead><tr><th>নাম</th><th>ফোন</th><th>মাসিক পরিমাণ</th><th>এই মাসে</th><th>কাজ</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="card"><b>নতুন সদস্য যোগ করুন</b><br>
+<input id="n" placeholder="নাম"><input id="p" placeholder="ফোন" inputmode="tel"><input id="a" placeholder="মাসিক টাকা" type="number" min="1">
+<button id="add">যোগ করুন</button></div>
+</div>
+</main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);
+const token=sessionStorage.getItem('tk');
+const bn=n=>Number(n).toLocaleString('bn-BD');
+async function api(path,opt={}){
+ const r=await fetch(URL_+'/rest/v1/'+path,{...opt,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='admin.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}
+ const t=await r.text();return t?JSON.parse(t):null;
+}
+function curMonth(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+async function load(){
+ const mon=$('mon').value;
+ const ms=await api('members?select=*&active=eq.true&order=name')||[];
+ const ps=await api('payments?select=*&month=eq.'+mon)||[];
+ const pm={};ps.forEach(p=>pm[p.member_id]=p);
+ const cur=curMonth(),late=new Date().getDate()>10;
+ let exp=0,got=0,pend=0;const tb=$('tb');tb.innerHTML='';
+ ms.forEach(m=>{
+  exp+=Number(m.monthly_amount);const p=pm[m.id];const tr=document.createElement('tr');
+  const cell=t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);return td;};
+  cell(m.name);cell(m.phone||'');cell('৳ '+bn(m.monthly_amount));
+  const st=cell('');
+  if(p){got+=Number(p.amount);st.textContent='জমা ✓ ৳'+bn(p.amount);st.className='ok';}
+  else{pend++;
+   if(mon<cur){st.textContent='বাকি';st.className='late';}
+   else if(mon===cur){st.textContent=late?'দেরি (১০ তারিখ পার)':'বাকি';st.className=late?'late':'due';}
+   else st.textContent='—';}
+  const ac=cell('');
+  const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;x.style.marginRight='4px';ac.appendChild(x);};
+  if(p)b('বাতিল','alt red',async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}});
+  else b('জমা হয়েছে','',async()=>{const v=prompt('জমার পরিমাণ',m.monthly_amount);if(v===null)return;
+   await api('payments',{method:'POST',body:JSON.stringify({member_id:m.id,month:mon,amount:Number(v)})});load();});
+  b('পরিমাণ বদলান','alt',async()=>{const v=prompt('নতুন মাসিক পরিমাণ',m.monthly_amount);if(!v)return;
+   await api('members?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({monthly_amount:Number(v)})});load();});
+  b('সরান','alt red',async()=>{if(confirm(m.name+' কে তালিকা থেকে সরাবেন? (আগের হিসাব থাকবে)')){
+   await api('members?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({active:false})});load();}});
+  tb.appendChild(tr);
+ });
+ $('s1').textContent=bn(ms.length);$('s2').textContent='৳ '+bn(exp);$('s3').textContent='৳ '+bn(got);$('s4').textContent=bn(pend);
+}
+$('add').onclick=async()=>{
+ const n=$('n').value.trim(),a=Number($('a').value);
+ if(!n||!(a>0)){alert('নাম ও মাসিক টাকা দিন।');return;}
+ await api('members',{method:'POST',body:JSON.stringify({name:n,phone:$('p').value.trim(),monthly_amount:a})});
+ $('n').value=$('p').value=$('a').value='';load();
+};
+$('mon').value=curMonth();$('mon').onchange=load;
+if(token){$('app').style.display='block';load();}else $('need').style.display='block';
+</script>
+</body>
+</html>
