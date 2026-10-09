@@ -1,0 +1,6 @@
+.rules-list{max-width:800px;margin:0 auto;padding:0;list-style:none;counter-reset:rule;display:grid;gap:14px}
+.rules-list li{counter-increment:rule;position:relative;background:#fff;border:1px solid rgba(18,61,50,.15);border-radius:14px;padding:16px 18px 16px 62px;line-height:1.8}
+.rules-list li::before{content:counter(rule,bengali);position:absolute;left:16px;top:14px;width:34px;height:34px;border-radius:50%;background:#123d32;color:#fff;display:grid;place-items:center;font-weight:700}
+.monthly-note{max-width:800px;margin:22px auto 0;padding:16px 20px;border-radius:14px;background:#fff6dc;border:1px solid #e6c766;text-align:center}
+.value-card a{display:inline-block;margin-top:8px;font-weight:700;color:#123d32}
+main>section:first-child:not(.hero){padding-top:48px}
