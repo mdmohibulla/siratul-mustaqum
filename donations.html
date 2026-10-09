@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>অনুদানের তালিকা | অ্যাডমিন</title>
+<style>
+body{margin:0;font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#f4f1ea;color:#1c2b26}
+header{background:#123d32;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header a{color:#fff}main{max-width:1100px;margin:20px auto;padding:0 14px}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:14px;margin-bottom:14px}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.sum div{background:#eef3f0;border-radius:10px;padding:10px}.sum b{display:block;font-size:20px}
+button{background:#123d32;color:#fff;border:0;padding:7px 11px;border-radius:8px;cursor:pointer;font-size:14px;margin-right:4px}button.alt{background:#fff;color:#b00020;border:1px solid #b00020}
+.wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:860px}th,td{padding:9px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}th{background:#eef3f0}
+.ok{color:#0a7a3d;font-weight:700}.wait{color:#a36200;font-weight:700}
+</style></head><body>
+<header><strong>অনুদানের তালিকা</strong><a href="admin.html">← অ্যাডমিন</a></header>
+<main>
+<div class="card" id="need" style="display:none">আগে <a href="admin.html">admin.html</a> এ লগইন করুন।</div>
+<div id="app" style="display:none">
+<div class="card sum"><div>যাচাই হওয়া মোট<b id="s1">০</b></div><div>যাচাইয়ের অপেক্ষায়<b id="s2">০</b></div><div>মোট এন্ট্রি<b id="s3">০</b></div></div>
+<div class="card wrap"><table><thead><tr><th>তারিখ</th><th>নাম</th><th>মাধ্যম</th><th>পরিমাণ</th><th>প্রেরকের নম্বর</th><th>TrxID</th><th>মন্তব্য</th><th>অবস্থা</th><th>কাজ</th></tr></thead><tbody id="tb"></tbody></table></div>
+<p>নিজের বিকাশ/নগদ অ্যাপে TrxID ও পরিমাণ মিলিয়ে দেখে তবেই "যাচাই হয়েছে" চাপুন।</p>
+</div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id),token=sessionStorage.getItem('tk'),bn=n=>Number(n).toLocaleString('bn-BD');
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='admin.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function load(){
+ const rows=await api('donations?select=*&order=created_at.desc&limit=300')||[];
+ let ok=0,wait=0;const tb=$('tb');tb.innerHTML='';
+ rows.forEach(d=>{const tr=document.createElement('tr');const c=t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);return td;};
+  c(new Date(d.created_at).toLocaleString('bn-BD'));c(d.donor_name);c(d.method);c('৳ '+bn(d.amount));c(d.sender_number);c(d.trx_id);c(d.note||'');
+  const st=c(d.verified?'যাচাই হয়েছে ✓':'অপেক্ষায়');st.className=d.verified?'ok':'wait';
+  if(d.verified)ok+=Number(d.amount);else wait++;
+  const ac=c('');const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;ac.appendChild(x);};
+  if(!d.verified)b('যাচাই হয়েছে','',async()=>{await api('donations?id=eq.'+d.id,{method:'PATCH',body:JSON.stringify({verified:true})});load();});
+  b('মুছুন','alt',async()=>{if(confirm('এই এন্ট্রি মুছবেন?')){await api('donations?id=eq.'+d.id,{method:'DELETE'});load();}});
+  tb.appendChild(tr);});
+ $('s1').textContent='৳ '+bn(ok);$('s2').textContent=bn(wait)+' টি';$('s3').textContent=bn(rows.length);}
+if(token){$('app').style.display='block';load();}else $('need').style.display='block';
+</script></body></html>

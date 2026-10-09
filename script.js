@@ -34,7 +34,7 @@ document.querySelectorAll('.copy-btn').forEach(button => {
 });
 
 // ফর্ম আইডি -> Supabase টেবিলের নাম
-[['helpForm', 'help_requests'], ['memberForm', 'member_applications']].forEach(([id, table]) => {
+[['helpForm', 'help_requests'], ['memberForm', 'member_applications'], ['donationForm', 'donations']].forEach(([id, table]) => {
   document.getElementById(id)?.addEventListener('submit', async event => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -58,7 +58,7 @@ document.querySelectorAll('.copy-btn').forEach(button => {
       });
       if (!res.ok) throw new Error('failed');
       form.reset();
-      note.textContent = 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।';
+      note.textContent = form.dataset.ok || 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।';
     } catch (e) {
       note.textContent = 'পাঠানো যায়নি। আবার চেষ্টা করুন।';
     } finally {
@@ -66,3 +66,14 @@ document.querySelectorAll('.copy-btn').forEach(button => {
     }
   });
 });
+
+// অনুদান পেজে "টাকা পাঠিয়েছেন?" লিংক
+const payGrid = document.querySelector('.payment-grid');
+if (payGrid) {
+  const link = document.createElement('a');
+  link.href = 'sent.html';
+  link.className = 'button button-light';
+  link.textContent = 'টাকা পাঠিয়েছেন? আমাদের জানান';
+  link.style.cssText = 'display:block;width:fit-content;margin:22px auto 0';
+  payGrid.insertAdjacentElement('afterend', link);
+}
