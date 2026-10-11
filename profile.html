@@ -19,35 +19,31 @@
 <main>
 <section class="section" id="pf"><div class="section-heading"><span class="eyebrow dark">আমার প্রোফাইল</span><h2 id="hn">লোড হচ্ছে...</h2><p id="hs"></p></div>
 <form class="application-form" id="pform"><div class="form-grid">
-<label>নাম<input id="pn" required maxlength="100"></label><label>মোবাইল নম্বর<input id="pph" required maxlength="25" inputmode="tel"></label>
-<label>ঠিকানা<input id="pa" maxlength="150"></label><label>পেশা<input id="po" maxlength="100"></label>
-<label>ইমেইল<input id="pe" disabled></label><label>মাসিক চাঁদা<input id="pm" disabled></label></div>
+<label>নাম<input id="pn" required maxlength="100"></label><label>ঠিকানা<input id="pa" maxlength="150"></label>
+<label>পেশা<input id="po" maxlength="100"></label><label>লগইন নম্বর<input id="pe" disabled></label><label>মাসিক চাঁদা<input id="pm" disabled></label></div>
 <button class="button button-primary" type="submit">তথ্য সংরক্ষণ করুন</button><p class="form-note" id="pmsg"></p></form>
 <div class="application-form" id="payb" style="margin-top:18px;display:none"><h3>আমার চাঁদার হিসাব</h3><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">মাস</th><th align="left">জমা</th></tr></thead><tbody id="ptb"></tbody></table></div><p class="form-note" id="pnone"></p></div>
 <div class="application-form" style="margin-top:18px"><h3>পাসওয়ার্ড বদলান</h3><div class="form-grid"><label>নতুন পাসওয়ার্ড (৮+ অক্ষর)<input id="np" type="password" minlength="8" autocomplete="new-password"></label></div><button class="button button-primary" id="cp" type="button">পাসওয়ার্ড বদলান</button> <button class="button button-outline" id="lo" type="button" style="color:#123d32;border-color:#123d32">লগআউট</button><p class="form-note" id="cm"></p></div></section>
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
+const rpc=async(n,b)=>{try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}};
 const tk=sessionStorage.getItem('mtk');if(!tk)location.href='member-login.html';
-let uid='';try{uid=JSON.parse(atob(tk.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).sub;}catch(e){location.href='member-login.html';}
-const bn=n=>Number(n).toLocaleString('bn-BD');let M=null;
-async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+tk,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('mtk');location.href='member-login.html';return null;}
- if(!r.ok)throw new Error(await r.text());const t=await r.text();return t?JSON.parse(t):null;}
+const bn=n=>Number(n).toLocaleString('bn-BD');
 async function load(){
- const rows=await api('members?select=*&user_id=eq.'+uid)||[];M=rows[0];
- if(!M){$('hn').textContent='প্রোফাইল পাওয়া যায়নি';$('hs').textContent='অ্যাডমিনের সঙ্গে যোগাযোগ করুন।';$('pform').style.display='none';return;}
- $('hn').textContent=M.name;const ok=M.status==='approved';
- $('hs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
- $('pn').value=M.name;$('pph').value=M.phone||'';$('pa').value=M.area||'';$('po').value=M.occupation||'';$('pe').value=M.email||'';
+ const d=await rpc('member_me',{p_token:tk});
+ if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}
+ const M=d.member,ok=M.status==='approved';
+ $('hn').textContent=M.name;$('hs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
+ $('pn').value=M.name;$('pa').value=M.area||'';$('po').value=M.occupation||'';$('pe').value=M.phone||'';
  $('pm').value=ok?'৳ '+bn(M.monthly_amount):'অনুমোদনের পর জানা যাবে';
- if(ok){$('payb').style.display='';const ps=await api('payments?select=*&member_id=eq.'+M.id+'&order=month.desc&limit=24')||[];
-  const tb=$('ptb');tb.innerHTML='';ps.forEach(p=>{const tr=document.createElement('tr');[p.month,'৳ '+bn(p.amount)].forEach(t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);});tb.appendChild(tr);});
-  $('pnone').textContent=ps.length?'':'এখনও কোনো জমা লেখা হয়নি।';}
+ if(ok){$('payb').style.display='';const tb=$('ptb');tb.innerHTML='';
+  d.payments.forEach(p=>{const tr=document.createElement('tr');[p.month,'৳ '+bn(p.amount)].forEach(t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);});tb.appendChild(tr);});
+  $('pnone').textContent=d.payments.length?'':'এখনও কোনো জমা লেখা হয়নি।';}
 }
-$('pform').onsubmit=async e=>{e.preventDefault();try{await api('members?id=eq.'+M.id,{method:'PATCH',body:JSON.stringify({name:$('pn').value.trim(),phone:$('pph').value.trim(),area:$('pa').value.trim(),occupation:$('po').value.trim()})});$('pmsg').textContent='সংরক্ষণ হয়েছে ✓';load();}catch(x){$('pmsg').textContent='সংরক্ষণ হয়নি।';}};
+$('pform').onsubmit=async e=>{e.preventDefault();const j=await rpc('member_update',{p_token:tk,p_name:$('pn').value,p_area:$('pa').value,p_occupation:$('po').value});
+ $('pmsg').textContent=j&&j.ok?'সংরক্ষণ হয়েছে ✓':'সংরক্ষণ হয়নি।';if(j&&j.ok)load();};
 $('cp').onclick=async()=>{const v=$('np').value;if(v.length<8){$('cm').textContent='কমপক্ষে ৮ অক্ষর দিন।';return;}
- const r=await fetch(URL_+'/auth/v1/user',{method:'PUT',headers:{apikey:KEY,Authorization:'Bearer '+tk,'Content-Type':'application/json'},body:JSON.stringify({password:v})});
- $('cm').textContent=r.ok?'পাসওয়ার্ড বদলেছে ✓':'বদলানো যায়নি।';if(r.ok)$('np').value='';};
-$('lo').onclick=()=>{sessionStorage.removeItem('mtk');location.href='member-login.html';};
+ const j=await rpc('member_change_password',{p_token:tk,p_new:v});$('cm').textContent=j&&j.ok?'পাসওয়ার্ড বদলেছে ✓':'বদলানো যায়নি।';if(j&&j.ok)$('np').value='';};
+$('lo').onclick=async()=>{await rpc('member_logout',{p_token:tk});sessionStorage.removeItem('mtk');location.href='member-login.html';};
 load();
 </script>
 </main>
