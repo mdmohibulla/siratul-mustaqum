@@ -30,6 +30,7 @@ th{background:#eef3f0}
 <main>
 <div class="card" id="need" style="display:none">আগে <a href="admin.html">admin.html</a> এ লগইন করুন, তারপর এই পেজ খুলুন।</div>
 <div id="app" style="display:none">
+<div class="card" id="pendCard" style="display:none"><b>অনুমোদনের অপেক্ষায় নতুন সদস্য</b><div id="pend"></div></div>
 <div class="card"><label>মাস বেছে নিন: <input type="month" id="mon"></label></div>
 <div class="card sum"><div>সদস্য<b id="s1">০</b></div><div>প্রত্যাশিত<b id="s2">০</b></div><div>জমা হয়েছে<b id="s3">০</b></div><div>বাকি সদস্য<b id="s4">০</b></div></div>
 <div class="card wrap"><table><thead><tr><th>নাম</th><th>ফোন</th><th>মাসিক পরিমাণ</th><th>এই মাসে</th><th>কাজ</th></tr></thead><tbody id="tb"></tbody></table></div>
@@ -50,9 +51,19 @@ async function api(path,opt={}){
  const t=await r.text();return t?JSON.parse(t):null;
 }
 function curMonth(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+async function loadPending(){
+ const ps=await api('members?select=*&status=eq.pending&order=created_at')||[];
+ $('pendCard').style.display=ps.length?'block':'none';const box=$('pend');box.innerHTML='';
+ ps.forEach(m=>{const d=document.createElement('div');d.style.cssText='padding:8px 0;border-bottom:1px solid #eee';d.textContent=m.name+' | '+(m.phone||'')+' | '+(m.email||'')+' | '+(m.area||'')+'  ';
+  const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;x.style.marginRight='4px';d.appendChild(x);};
+  b('অনুমোদন','',async()=>{const v=prompt('মাসিক চাঁদার পরিমাণ (টাকা)','100');if(!v)return;await api('members?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({status:'approved',monthly_amount:Number(v)})});load();});
+  b('বাতিল','alt red',async()=>{if(confirm(m.name+' এর আবেদন বাতিল করবেন?')){await api('members?id=eq.'+m.id,{method:'DELETE'});load();}});
+  box.appendChild(d);});
+}
 async function load(){
+ loadPending();
  const mon=$('mon').value;
- const ms=await api('members?select=*&active=eq.true&order=name')||[];
+ const ms=await api('members?select=*&active=eq.true&status=eq.approved&order=name')||[];
  const ps=await api('payments?select=*&month=eq.'+mon)||[];
  const pm={};ps.forEach(p=>pm[p.member_id]=p);
  const cur=curMonth(),late=new Date().getDate()>10;

@@ -77,3 +77,12 @@ if (payGrid) {
   link.style.cssText = 'display:block;width:fit-content;margin:22px auto 0';
   payGrid.insertAdjacentElement('afterend', link);
 }
+
+// মেনুতে সদস্য লগইন লিংক
+if (nav && !nav.querySelector('[href="member-login.html"]')) {
+  const ml = document.createElement('a');
+  ml.href = 'member-login.html';
+  ml.textContent = 'সদস্য লগইন';
+  const cta = nav.querySelector('.nav-cta');
+  cta ? nav.insertBefore(ml, cta) : nav.appendChild(ml);
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123d32">
+<title>সদস্য লগইন | সিরাতুল মুস্তাকিম</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="extra.css">
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="index.html" aria-label="হোম"><span class="brand-mark">س</span><span><strong>সিরাতুল মুস্তাকিম</strong><small>মানবতার পাশে, কল্যাণের পথে</small></span></a>
+<button class="menu-toggle" id="menuToggle" aria-label="মেনু খুলুন" aria-expanded="false">☰</button>
+<nav id="nav">
+<a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="rules.html">নীতিমালা</a><a href="member.html">সদস্য হোন</a><a href="activities.html">কার্যক্রম</a><a href="donate.html">অনুদান</a><a href="reports.html">হিসাব ও রিপোর্ট</a><a class="nav-cta" href="apply.html">সাহায্যের আবেদন</a>
+</nav>
+</header>
+<main>
+<section class="section" id="ml"><div class="section-heading"><span class="eyebrow dark">সদস্য এলাকা</span><h2>সদস্য লগইন ও নিবন্ধন</h2><p>নিবন্ধনের পর অ্যাডমিন অনুমোদন দিলে আপনার প্রোফাইল ও চাঁদার হিসাব দেখতে পারবেন।</p></div>
+<div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px"><button class="button button-primary" id="b1" type="button">লগইন</button><button class="button button-outline" id="b2" type="button" style="color:#123d32;border-color:#123d32">নতুন নিবন্ধন</button></div>
+<form class="application-form" id="lf"><div class="form-grid"><label>ইমেইল<input id="le" type="email" required autocomplete="username"></label><label>পাসওয়ার্ড<input id="lp" type="password" required autocomplete="current-password"></label></div><button class="button button-primary" type="submit">লগইন করুন</button><p class="form-note" id="lm">পাসওয়ার্ড ভুলে গেলে সংগঠনের দায়িত্বশীলের সঙ্গে যোগাযোগ করুন।</p></form>
+<form class="application-form" id="rf" style="display:none"><div class="form-grid">
+<label>পূর্ণ নাম<input id="rn" required maxlength="100"></label><label>মোবাইল নম্বর<input id="rph" required inputmode="tel" maxlength="25"></label>
+<label>ঠিকানা (জেলা/উপজেলা)<input id="ra" required maxlength="150"></label><label>পেশা<input id="ro" maxlength="100"></label>
+<label>ইমেইল<input id="re" type="email" required autocomplete="username"></label><label>পাসওয়ার্ড (কমপক্ষে ৮ অক্ষর)<input id="rp" type="password" minlength="8" required autocomplete="new-password"></label></div>
+<label class="consent"><input type="checkbox" required> আমি <a href="rules.html"><u>নীতিমালা</u></a> পড়েছি এবং মেনে চলতে সম্মত।</label>
+<button class="button button-primary" type="submit">নিবন্ধন করুন</button><p class="form-note" id="rm"></p></form></section>
+<script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
+async function auth(p,b){const r=await fetch(URL_+'/auth/v1/'+p,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return {ok:r.ok,j:await r.json().catch(()=>({}))};}
+$('b1').onclick=()=>{$('lf').style.display='';$('rf').style.display='none';};
+$('b2').onclick=()=>{$('rf').style.display='';$('lf').style.display='none';};
+$('lf').onsubmit=async e=>{e.preventDefault();$('lm').textContent='অপেক্ষা করুন...';
+ const {ok,j}=await auth('token?grant_type=password',{email:$('le').value.trim(),password:$('lp').value});
+ if(!ok||!j.access_token){$('lm').textContent='ইমেইল বা পাসওয়ার্ড ভুল।';return;}
+ sessionStorage.setItem('mtk',j.access_token);location.href='profile.html';};
+$('rf').onsubmit=async e=>{e.preventDefault();const m=$('rm');m.textContent='অপেক্ষা করুন...';
+ const {ok,j}=await auth('signup',{email:$('re').value.trim(),password:$('rp').value});
+ if(!ok){m.textContent=(j.msg||j.error_description||'নিবন্ধন হয়নি')+' (ইমেইল আগে ব্যবহার হয়ে থাকলে লগইন করুন)';return;}
+ if(!j.access_token){m.textContent='আপনার ইমেইলে একটি নিশ্চিতকরণ লিংক গেছে। নিশ্চিত করে লগইন করুন।';return;}
+ const r=await fetch(URL_+'/rest/v1/members',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+j.access_token,'Content-Type':'application/json',Prefer:'return=minimal'},
+  body:JSON.stringify({user_id:j.user.id,name:$('rn').value.trim(),phone:$('rph').value.trim(),area:$('ra').value.trim(),occupation:$('ro').value.trim(),email:$('re').value.trim(),status:'pending',monthly_amount:0})});
+ if(!r.ok){m.textContent='প্রোফাইল তৈরি হয়নি। অ্যাডমিনকে জানান।';return;}
+ sessionStorage.setItem('mtk',j.access_token);location.href='profile.html';};
+</script>
+</main>
+<footer>
+<div class="footer-brand"><span class="brand-mark">س</span><div><strong>সিরাতুল মুস্তাকিম</strong><p>মানবতার পাশে, কল্যাণের পথে</p></div></div>
+<p class="footer-note">একটি মানবিক ও অরাজনৈতিক উদ্যোগ।</p>
+<div class="footer-bottom"><span>© <span id="year"></span> সিরাতুল মুস্তাকিম</span><a href="index.html">হোমে ফিরে যান</a></div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>
