@@ -26,9 +26,9 @@ th{background:#eef3f0}
 </style>
 </head>
 <body>
-<header><strong>মাসিক চাঁদার হিসাব</strong><a href="admin.html">← অ্যাডমিন</a></header>
+<header><strong>মাসিক চাঁদার হিসাব</strong><a href="panel.html">← অ্যাডমিন</a></header>
 <main>
-<div class="card" id="need" style="display:none">আগে <a href="admin.html">admin.html</a> এ লগইন করুন, তারপর এই পেজ খুলুন।</div>
+<div class="card" id="need" style="display:none">আগে <a href="panel.html">panel.html</a> এ লগইন করুন, তারপর এই পেজ খুলুন।</div>
 <div id="app" style="display:none">
 <div class="card" id="pendCard" style="display:none"><b>অনুমোদনের অপেক্ষায় নতুন সদস্য</b><div id="pend"></div></div>
 <div class="card"><label>মাস বেছে নিন: <input type="month" id="mon"></label></div>
@@ -46,7 +46,7 @@ const token=sessionStorage.getItem('tk');
 const bn=n=>Number(n).toLocaleString('bn-BD');
 async function api(path,opt={}){
  const r=await fetch(URL_+'/rest/v1/'+path,{...opt,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('tk');location.href='admin.html';return null;}
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}
  const t=await r.text();return t?JSON.parse(t):null;
 }

@@ -10,9 +10,9 @@ button{background:#123d32;color:#fff;border:0;padding:7px 11px;border-radius:8px
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:860px}th,td{padding:9px;border-bottom:1px solid #eee;text-align:left;font-size:14px;vertical-align:top}th{background:#eef3f0}
 .ok{color:#0a7a3d;font-weight:700}.wait{color:#a36200;font-weight:700}
 </style></head><body>
-<header><strong>অনুদানের তালিকা</strong><a href="admin.html">← অ্যাডমিন</a></header>
+<header><strong>অনুদানের তালিকা</strong><a href="panel.html">← অ্যাডমিন</a></header>
 <main>
-<div class="card" id="need" style="display:none">আগে <a href="admin.html">admin.html</a> এ লগইন করুন।</div>
+<div class="card" id="need" style="display:none">আগে <a href="panel.html">panel.html</a> এ লগইন করুন।</div>
 <div id="app" style="display:none">
 <div class="card sum"><div>যাচাই হওয়া মোট<b id="s1">০</b></div><div>যাচাইয়ের অপেক্ষায়<b id="s2">০</b></div><div>মোট এন্ট্রি<b id="s3">০</b></div></div>
 <div class="card wrap"><table><thead><tr><th>তারিখ</th><th>নাম</th><th>মাধ্যম</th><th>পরিমাণ</th><th>প্রেরকের নম্বর</th><th>TrxID</th><th>মন্তব্য</th><th>অবস্থা</th><th>কাজ</th></tr></thead><tbody id="tb"></tbody></table></div>
@@ -22,7 +22,7 @@ button{background:#123d32;color:#fff;border:0;padding:7px 11px;border-radius:8px
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id),token=sessionStorage.getItem('tk'),bn=n=>Number(n).toLocaleString('bn-BD');
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('tk');location.href='admin.html';return null;}
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
 async function load(){
  const rows=await api('donations?select=*&order=created_at.desc&limit=300')||[];
