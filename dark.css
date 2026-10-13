@@ -90,3 +90,16 @@ option{background:#0b1220;color:#fff}
 .tile.amber{background:#271a05!important;border-color:#92400e!important}.tile.amber b{color:#fbbf24!important}
 .tile.pink{background:#2a0a1c!important;border-color:#9d174d!important}.tile.pink b{color:#f472b6!important}
 .tile.cyan{background:#052229!important;border-color:#155e75!important}.tile.cyan b{color:#22d3ee!important}
+
+/* হিসাব ও কার্যক্রম কার্ড */
+.stat.pink{background:#2a0a1c;border-color:#9d174d}.stat.pink b{color:#f472b6}
+.stat.amber{background:#271a05;border-color:#92400e}.stat.amber b{color:#fbbf24}
+.stat.cyan{background:#052229;border-color:#155e75}.stat.cyan b{color:#22d3ee}
+.entry{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;background:#0b1220;border:1px solid #1e293b;border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.entry b{color:#fff!important}.entry small{color:#cbd5e1!important}
+.entry .amt{color:#f87171;font-weight:800;white-space:nowrap;font-size:18px}.entry .amt.in{color:#4ade80}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.acard{background:#0b1220;border:1px solid #1e293b;border-radius:18px;overflow:hidden}
+.acard img{width:100%;height:210px;object-fit:cover;display:block}
+.acard .body{padding:14px 16px}.acard .dt{color:#93c5fd;font-size:14px}
+.acard h3{margin:4px 0 6px;color:#fff!important}.acard .amt{color:#4ade80;font-weight:800}

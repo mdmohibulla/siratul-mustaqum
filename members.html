@@ -4,24 +4,31 @@
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
 <div class="bar"><button id="f_all" class="alt">সব</button><button id="f_ok" class="alt">সদস্য</button><button id="f_pending" class="alt">অপেক্ষায়</button><input id="q" placeholder="নাম বা ফোন খুঁজুন" style="flex:1;min-width:160px"></div>
-<div class="card wrap"><table><thead><tr><th>নাম</th><th>ফোন</th><th>ঠিকানা</th><th>মাসিক চাঁদা</th><th>অবস্থা</th></tr></thead><tbody id="tb"></tbody></table></div></div></main>
+<div class="dash" id="grid"></div></div></main>
 <script>
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
 const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStart(2,'0');};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
  if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
-let F=new URLSearchParams(location.search).get('f')||'all',rows=[];
-function draw(){const q=$('q').value.trim().toLowerCase();const tb=$('tb');tb.innerHTML='';
+
+let F=new URLSearchParams(location.search).get('f')||'all',rows=[];if(F==='approved')F='ok';
+function draw(){const q=$('q').value.trim().toLowerCase(),g=$('grid');g.innerHTML='';
  ['all','ok','pending'].forEach(k=>{$('f_'+k).className=(F===k)?'on':'alt';});
- rows.filter(m=>(F==='all'||(F==='ok'&&m.status==='approved')||(F==='pending'&&m.status==='pending'))&&(!q||(m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q))).forEach(m=>{
-  const tr=document.createElement('tr');const c=t=>{const td=document.createElement('td');td.textContent=t??'';tr.appendChild(td);return td;};
-  const nt=c('');const a=document.createElement('a');a.href='mprofile.html?id='+m.id;a.textContent=m.name;nt.appendChild(a);
-  c(m.phone);c(m.area);c(m.status==='approved'?'৳ '+bn(m.monthly_amount):'–');
-  const st=c(m.status==='approved'?'সদস্য ✓':'অপেক্ষায়');st.className=m.status==='approved'?'ok':'wait';tb.appendChild(tr);});}
+ const L=rows.filter(m=>(F==='all'||(F==='ok'&&m.status==='approved')||(F==='pending'&&m.status==='pending'))&&(!q||(m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q)));
+ L.forEach(m=>{const ok=m.status==='approved';const a=document.createElement('a');a.className='dcard mcard '+(ok?'green':'amber');a.href='mprofile.html?id='+m.id;
+  const av=document.createElement('div');av.className='av';av.textContent=(m.name||'?').trim().charAt(0);
+  const n=document.createElement('b');n.textContent=m.name;n.style.fontSize='20px';
+  const p=document.createElement('small');p.textContent='📞 '+(m.phone||'');const ar=document.createElement('small');ar.textContent='📍 '+(m.area||'—');
+  const am=document.createElement('small');am.textContent=ok?'💰 ৳ '+bn(m.monthly_amount)+' / মাস':'অনুমোদনের অপেক্ষায়';
+  const bd=document.createElement('span');bd.className='badge '+(ok?'ok':'wait');bd.style.display='inline-block';bd.style.fontSize='13px';bd.textContent=ok?'সক্রিয় সদস্য':'অপেক্ষায়';
+  [av,n,p,ar,am,bd].forEach(x=>a.appendChild(x));g.appendChild(a);});
+ if(!L.length)g.textContent='কেউ নেই।';}
 async function load(){rows=await api('members?select=id,name,phone,area,monthly_amount,status&active=eq.true&order=created_at.desc')||[];draw();}
 $('f_all').onclick=()=>{F='all';draw();};$('f_ok').onclick=()=>{F='ok';draw();};$('f_pending').onclick=()=>{F='pending';draw();};$('q').oninput=draw;
-if(F==='approved')F='ok';
 if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
 </script></body></html>

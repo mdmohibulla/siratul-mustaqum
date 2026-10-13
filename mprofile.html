@@ -4,43 +4,52 @@
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
 <div class="card prof"><div class="av" id="av"></div><div><h2 id="nm"></h2><span id="bd" class="badge"></span></div></div>
-<div class="dash" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-<div class="dcard blue"><b id="s1">–</b><small>মাসিক চাঁদা</small></div><div class="dcard green"><b id="s2">–</b><small>এই মাসে</small></div><div class="dcard purple"><b id="s3">–</b><small>মোট জমা</small></div></div>
-<div class="card" style="margin-top:14px"><h3>তথ্য</h3><div class="fg">
-<label>নাম<input id="in" maxlength="100"></label><label>মোবাইল (লগইন নম্বর)<input id="ip" maxlength="25"></label><label>ঠিকানা<input id="ia" maxlength="150"></label><label>পেশা<input id="io" maxlength="100"></label></div>
-<p id="meta" style="color:#cbd5e1"></p><button id="sv">সংরক্ষণ করুন</button></div>
-<div class="card"><h3>কাজ</h3><div id="act"></div></div>
-<div class="card"><h3>চাঁদার ইতিহাস</h3><div class="bar"><input type="month" id="pm"><input type="number" id="pa" min="1" placeholder="পরিমাণ"><button id="padd">জমা লিখুন</button></div>
-<div class="wrap"><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>কাজ</th></tr></thead><tbody id="ptb"></tbody></table></div></div>
+<div class="dash sm" id="stats"></div>
+<div class="dash sm" id="info" style="margin-top:14px"></div>
+<div class="dash sm" id="act" style="margin-top:14px"></div>
+<div class="card" style="margin-top:14px"><h3>✏️ তথ্য সম্পাদনা</h3><div class="fg">
+<label>নাম<input id="in" maxlength="100"></label><label>মোবাইল (লগইন নম্বর)<input id="ip" maxlength="25"></label><label>ঠিকানা<input id="ia" maxlength="150"></label><label>পেশা<input id="io" maxlength="100"></label></div><button id="sv" style="margin-top:8px">সংরক্ষণ করুন</button></div>
+<div class="card"><h3>💰 জমা লিখুন</h3><div class="bar"><input type="month" id="pm"><input type="number" id="pa" min="1" placeholder="পরিমাণ"><button id="padd">জমা লিখুন</button></div></div>
+<h3 style="margin:18px 0 8px">চাঁদার ইতিহাস</h3><div class="dash sm" id="ph"></div>
 </div></main>
 <script>
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
 const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStart(2,'0');};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
  if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+
 const MID=new URLSearchParams(location.search).get('id')||'';let M=null;
+function box(parent,cls,icon,val,label,fn){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';
+ d.children[0].textContent=icon;d.children[1].textContent=val;d.children[2].textContent=label;if(fn){d.style.cursor='pointer';d.onclick=fn;}parent.appendChild(d);return d;}
 async function load(){
  if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
  const rows=await api('members?select=*&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
  const ps=await api('payments?select=*&member_id=eq.'+MID+'&order=month.desc')||[];const ok=M.status==='approved';
  $('av').textContent=(M.name||'?').trim().charAt(0);$('nm').textContent=M.name;$('bd').textContent=ok?'সক্রিয় সদস্য':'অনুমোদনের অপেক্ষায়';$('bd').className='badge '+(ok?'ok':'wait');
- $('in').value=M.name||'';$('ip').value=M.phone||'';$('ia').value=M.area||'';$('io').value=M.occupation||'';
- $('meta').textContent='যোগদান: '+new Date(M.joined_on||M.created_at).toLocaleDateString('bn-BD')+' | সদস্য লগইন: '+(M.pass_hash?'চালু আছে':'নেই');
- $('s1').textContent=ok?'৳ '+bn(M.monthly_amount):'–';$('s2').textContent=ok?(ps.some(p=>p.month===cur())?'জমা ✓':'বাকি'):'–';$('s3').textContent='৳ '+bn(ps.reduce((s,p)=>s+Number(p.amount),0));
- $('pa').value=ok?M.monthly_amount:'';
- const tb=$('ptb');tb.innerHTML='';ps.forEach(p=>{const tr=document.createElement('tr');const c=t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);return td;};
-  c(p.month);c('৳ '+bn(p.amount));const ac=c('');const b=document.createElement('button');b.textContent='বাতিল';b.className='alt red';
-  b.onclick=async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}};ac.appendChild(b);tb.appendChild(tr);});
- const act=$('act');act.innerHTML='';const btn=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;act.appendChild(x);};
- if(!ok){btn('অনুমোদন দিন','',async()=>{const v=prompt('মাসিক চাঁদার পরিমাণ (টাকা)','100');if(!v)return;await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({status:'approved',monthly_amount:Number(v)})});load();});
-  btn('আবেদন বাতিল','alt red',async()=>{if(confirm('এই আবেদন মুছে ফেলবেন?')){await api('members?id=eq.'+MID,{method:'DELETE'});location.href='members.html';}});}
- else{btn('মাসিক পরিমাণ বদলান','alt',async()=>{const v=prompt('নতুন মাসিক পরিমাণ',M.monthly_amount);if(!v)return;await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({monthly_amount:Number(v)})});load();});
-  btn('সদস্য তালিকা থেকে সরান','alt red',async()=>{if(confirm('এই সদস্যকে তালিকা থেকে সরাবেন? (আগের হিসাব থাকবে)')){await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({active:false})});location.href='members.html';}});}
- btn(M.pass_hash?'পাসওয়ার্ড রিসেট':'লগইন চালু করুন','alt',async()=>{const v=prompt('নতুন পাসওয়ার্ড দিন (কমপক্ষে ৮ অক্ষর)');if(!v)return;
+ $('in').value=M.name||'';$('ip').value=M.phone||'';$('ia').value=M.area||'';$('io').value=M.occupation||'';$('pa').value=ok?M.monthly_amount:'';
+ const st=$('stats');st.innerHTML='';
+ box(st,'blue','💰',ok?'৳ '+bn(M.monthly_amount):'–','মাসিক চাঁদা');box(st,'green','📅',ok?(ps.some(p=>p.month===cur())?'জমা ✓':'বাকি'):'–','এই মাসে');
+ box(st,'purple','🧾','৳ '+bn(sum(ps)),'মোট জমা');box(st,'cyan','🗓️',bn(ps.length),'জমার মাস');
+ const inf=$('info');inf.innerHTML='';
+ box(inf,'blue','📞',M.phone||'–','ফোন');box(inf,'green','📍',M.area||'–','ঠিকানা');box(inf,'amber','💼',M.occupation||'–','পেশা');
+ box(inf,'purple','📆',dfmt(M.joined_on||M.created_at),'যোগদান');box(inf,'pink','🔐',M.pass_hash?'চালু':'নেই','সদস্যের লগইন');
+ const ac=$('act');ac.innerHTML='';
+ if(!ok){box(ac,'green','✅','অনুমোদন দিন','',async()=>{const v=prompt('মাসিক চাঁদার পরিমাণ (টাকা)','100');if(!v)return;await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({status:'approved',monthly_amount:Number(v)})});load();});
+  box(ac,'pink','🗑️','আবেদন বাতিল','',async()=>{if(confirm('এই আবেদন মুছে ফেলবেন?')){await api('members?id=eq.'+MID,{method:'DELETE'});location.href='members.html';}});}
+ else{box(ac,'blue','✏️','পরিমাণ বদলান','মাসিক চাঁদা',async()=>{const v=prompt('নতুন মাসিক পরিমাণ',M.monthly_amount);if(!v)return;await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({monthly_amount:Number(v)})});load();});
+  box(ac,'pink','🚫','সদস্য সরান','তালিকা থেকে',async()=>{if(confirm('এই সদস্যকে তালিকা থেকে সরাবেন? (আগের হিসাব থাকবে)')){await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({active:false})});location.href='members.html';}});}
+ box(ac,'amber','🔑',M.pass_hash?'পাসওয়ার্ড রিসেট':'লগইন চালু করুন','',async()=>{const v=prompt('নতুন পাসওয়ার্ড দিন (কমপক্ষে ৮ অক্ষর)');if(!v)return;
   const j=await api('rpc/admin_reset_member_password',{method:'POST',body:JSON.stringify({p_member:MID,p_password:v})});
   alert(j&&j.ok?'পাসওয়ার্ড বসানো হয়েছে। সদস্যকে জানান এবং প্রোফাইলে গিয়ে বদলে নিতে বলুন।':'হয়নি: '+((j&&j.error)||'SQL সেটআপ চালানো হয়েছে কি না দেখুন'));load();});
+ const ph=$('ph');ph.innerHTML='';
+ ps.forEach(p=>{const d=box(ph,'green','✓','৳ '+bn(p.amount),p.month);const x=document.createElement('button');x.className='alt red';x.textContent='বাতিল';x.style.marginTop='8px';
+  x.onclick=async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}};d.appendChild(x);});
+ if(!ps.length)ph.textContent='এখনও কোনো জমা নেই।';
 }
 $('sv').onclick=async()=>{if(!$('in').value.trim()){alert('নাম দিন।');return;}
  await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({name:$('in').value.trim(),phone:$('ip').value.trim(),area:$('ia').value.trim(),occupation:$('io').value.trim()})});load();};

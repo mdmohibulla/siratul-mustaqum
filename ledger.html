@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>হিসাব ও রিপোর্ট | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>হিসাব ও রিপোর্ট</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="dash" id="cards"></div>
+<div class="two">
+<div class="card"><h3>💸 খরচ যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="e_d"></label><label>খরচের বিবরণ<input id="e_t" maxlength="150" placeholder="যেমন: রোগীর ওষুধ"></label><label>টাকা<input type="number" id="e_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="e_n" maxlength="200"></label></div><button id="e_b" class="red">খরচ লিখুন</button><div id="e_l" style="margin-top:14px"></div></div>
+<div class="card"><h3>➕ অন্যান্য জমা যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="i_d"></label><label>জমার বিবরণ<input id="i_t" maxlength="150" placeholder="যেমন: নগদ অনুদান"></label><label>টাকা<input type="number" id="i_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="i_n" maxlength="200"></label></div><button id="i_b">জমা লিখুন</button><div id="i_l" style="margin-top:14px"></div></div>
+</div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStart(2,'0');};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+
+let LED=[];
+function card(parent,cls,icon,val,label){const d=document.createElement('div');d.className='dcard '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=icon;d.children[1].textContent=val;d.children[2].textContent=label;parent.appendChild(d);}
+function list(kind,box){const el=$(box);el.innerHTML='';LED.filter(x=>x.kind===kind).forEach(x=>{const e=document.createElement('div');e.className='entry';
+ const l=document.createElement('div');const b=document.createElement('b');b.textContent=x.title;const s=document.createElement('small');s.textContent=dfmt(x.entry_date)+(x.note?' • '+x.note:'');l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);
+ const r=document.createElement('div');r.style.textAlign='right';const a=document.createElement('div');a.className='amt'+(kind==='income'?' in':'');a.textContent='৳ '+bn(x.amount);
+ const del=document.createElement('button');del.className='alt red';del.textContent='মুছুন';del.onclick=async()=>{if(confirm('এই এন্ট্রি মুছবেন?')){await api('ledger?id=eq.'+x.id,{method:'DELETE'});load();}};
+ r.appendChild(a);r.appendChild(del);e.appendChild(l);e.appendChild(r);el.appendChild(e);});
+ if(!el.children.length)el.textContent='এখনও কিছু যোগ করা হয়নি।';}
+async function load(){
+ const [pay,don,led]=await Promise.all([api('payments?select=amount'),api('donations?select=amount,verified'),api('ledger?select=*&order=entry_date.desc,created_at.desc')]);
+ LED=led||[];const ch=sum(pay||[]),dn=sum((don||[]).filter(x=>x.verified)),ot=sum(LED.filter(x=>x.kind==='income')),ex=sum(LED.filter(x=>x.kind==='expense'));
+ const tot=ch+dn+ot;const c=$('cards');c.innerHTML='';
+ card(c,'green','💰','৳ '+bn(tot),'মোট জমা');card(c,'pink','💸','৳ '+bn(ex),'মোট খরচ');card(c,'purple','🏦','৳ '+bn(tot-ex),'অবশিষ্ট');
+ card(c,'blue','👥','৳ '+bn(ch),'সদস্যদের চাঁদা');card(c,'cyan','💚','৳ '+bn(dn),'যাচাই করা অনুদান');card(c,'amber','➕','৳ '+bn(ot),'অন্যান্য জমা');
+ list('expense','e_l');list('income','i_l');}
+async function add(k,p){const t=$(p+'_t').value.trim(),a=Number($(p+'_a').value),d=$(p+'_d').value||today();
+ if(!t||!(a>0)){alert('বিবরণ ও টাকা দিন।');return;}
+ await api('ledger',{method:'POST',body:JSON.stringify({kind:k,entry_date:d,title:t,amount:a,note:$(p+'_n').value.trim()||null})});
+ $(p+'_t').value=$(p+'_a').value=$(p+'_n').value='';load();}
+$('e_b').onclick=()=>add('expense','e');$('i_b').onclick=()=>add('income','i');$('e_d').value=$('i_d').value=today();
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>
