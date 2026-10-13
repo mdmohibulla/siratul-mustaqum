@@ -26,6 +26,7 @@ async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:
 const MID=new URLSearchParams(location.search).get('id')||'';let M=null;
 function box(parent,cls,icon,val,label,fn){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';
  d.children[0].textContent=icon;d.children[1].textContent=val;d.children[2].textContent=label;if(fn){d.style.cursor='pointer';d.onclick=fn;}parent.appendChild(d);return d;}
+function phoneIntl(p){const d=String(p||'').replace(/\D/g,'');if(d.startsWith('880'))return d;if(d.startsWith('0'))return '880'+d.slice(1);return d;}
 async function load(){
  if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
  const rows=await api('members?select=*&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
@@ -46,6 +47,7 @@ async function load(){
  box(ac,'amber','🔑',M.pass_hash?'পাসওয়ার্ড রিসেট':'লগইন চালু করুন','',async()=>{const v=prompt('নতুন পাসওয়ার্ড দিন (কমপক্ষে ৮ অক্ষর)');if(!v)return;
   const j=await api('rpc/admin_reset_member_password',{method:'POST',body:JSON.stringify({p_member:MID,p_password:v})});
   alert(j&&j.ok?'পাসওয়ার্ড বসানো হয়েছে। সদস্যকে জানান এবং প্রোফাইলে গিয়ে বদলে নিতে বলুন।':'হয়নি: '+((j&&j.error)||'SQL সেটআপ চালানো হয়েছে কি না দেখুন'));load();});
+ if(ok&&M.phone)box(ac,'cyan','📲','রিমাইন্ডার পাঠান','WhatsApp',()=>window.open('https://wa.me/'+phoneIntl(M.phone)+'?text='+encodeURIComponent('আসসালামু আলাইকুম '+M.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(M.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল। জাযাকাল্লাহ।'),'_blank'));
  const ph=$('ph');ph.innerHTML='';
  ps.forEach(p=>{const d=box(ph,'green','✓','৳ '+bn(p.amount),p.month);const x=document.createElement('button');x.className='alt red';x.textContent='বাতিল';x.style.marginTop='8px';
   x.onclick=async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}};d.appendChild(x);});

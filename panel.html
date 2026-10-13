@@ -12,7 +12,10 @@
 <a class="dcard purple" href="chanda.html"><span>💰</span><b id="n_pay">–</b><small>এই মাসে জমা</small></a>
 <a class="dcard pink" href="donations.html"><span>💚</span><b id="n_don">–</b><small>অনুদান যাচাই বাকি</small></a>
 <a class="dcard cyan" href="acts.html"><span>🤝</span><b id="n_act">–</b><small>কার্যক্রম</small></a>
-<a class="dcard lime" href="ledger.html"><span>📊</span><b id="n_bal">–</b><small>হিসাব — অবশিষ্ট</small></a>
+<a class="dcard green" href="ledger.html"><span>💰</span><b id="n_tot">–</b><small>মোট জমা</small></a>
+<a class="dcard pink" href="ledger.html"><span>💸</span><b id="n_exp">–</b><small>মোট খরচ</small></a>
+<a class="dcard purple" href="ledger.html"><span>🏦</span><b id="n_bal">–</b><small>অবশিষ্ট টাকা</small></a>
+<a class="dcard amber" href="chanda.html"><span>⏰</span><b id="n_due">–</b><small>এই মাসে বকেয়া সদস্য</small></a>
 <a class="dcard cyan" href="#" id="c1"><span>⬇️</span><b>CSV</b><small>সদস্য তালিকা</small></a>
 <a class="dcard amber" href="#" id="c2"><span>⬇️</span><b>CSV</b><small>সাহায্যের আবেদন</small></a>
 <a class="dcard lime" href="#" id="c3"><span>⬇️</span><b>CSV</b><small>অনুদানের তালিকা</small></a>
@@ -34,13 +37,13 @@ async function login(){$('msg').textContent='';
  }catch(e){$('msg').textContent='সংযোগে সমস্যা: '+e.message;}}
 function logout(){sessionStorage.removeItem('tk');location.reload();}
 async function counts(){try{
- const [m,r,d,p]=await Promise.all([api('members?select=id,status&active=eq.true'),api('help_requests?select=id'),api('donations?select=id,verified'),api('payments?select=amount&month=eq.'+cur())]);
+ const [m,r,d,p]=await Promise.all([api('members?select=id,status&active=eq.true'),api('help_requests?select=id'),api('donations?select=id,verified'),api('payments?select=amount,member_id&month=eq.'+cur())]);
  $('n_mem').textContent=bn(m.filter(x=>x.status==='approved').length);$('n_pen').textContent=bn(m.filter(x=>x.status==='pending').length);
  $('n_req').textContent=bn(r.length);$('n_don').textContent=bn(d.filter(x=>!x.verified).length);
- $('n_pay').textContent='৳ '+bn(p.reduce((s,x)=>s+Number(x.amount),0));}catch(e){}
+ $('n_pay').textContent='৳ '+bn(p.reduce((s,x)=>s+Number(x.amount),0));$('n_due').textContent=bn(m.filter(x=>x.status==='approved'&&!p.some(y=>y.member_id===x.id)).length);}catch(e){}
  try{const [ap,pa,dn,lg]=await Promise.all([api('activities?select=id'),api('payments?select=amount'),api('donations?select=amount,verified'),api('ledger?select=kind,amount')]);
   $('n_act').textContent=bn(ap.length);const inc=pa.reduce((s,x)=>s+Number(x.amount),0)+dn.filter(x=>x.verified).reduce((s,x)=>s+Number(x.amount),0)+lg.filter(x=>x.kind==='income').reduce((s,x)=>s+Number(x.amount),0);
-  const ex=lg.filter(x=>x.kind==='expense').reduce((s,x)=>s+Number(x.amount),0);$('n_bal').textContent='৳ '+bn(inc-ex);}catch(e){}}
+  const ex=lg.filter(x=>x.kind==='expense').reduce((s,x)=>s+Number(x.amount),0);$('n_tot').textContent='৳ '+bn(inc);$('n_exp').textContent='৳ '+bn(ex);$('n_bal').textContent='৳ '+bn(inc-ex);}catch(e){}}
 async function dl(path,cols,name){const rows=await api(path)||[];
  const q=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
  const lines=[cols.map(c=>q(c[1])).join(',')].concat(rows.map(r=>cols.map(c=>q(r[c[0]])).join(',')));

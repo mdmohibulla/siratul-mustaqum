@@ -20,10 +20,14 @@
 <div class="wrapx"><h1 class="greet" style="font-size:28px">🤝 কার্যক্রম</h1><p id="note">সংগঠনের সম্পন্ন কাজ ও সহায়তা।</p><div class="agrid" id="list"></div></div>
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
 async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
+const PUB=URL_+'/storage/v1/object/public/activity-photos/';
+const photosOf=x=>(x.photos&&x.photos.length)?x.photos:(x.photo_path?[x.photo_path]:[]);
+function lb(src){const o=document.createElement('div');o.className='lb';const i=document.createElement('img');i.src=src;o.appendChild(i);o.onclick=()=>o.remove();document.body.appendChild(o);}
+function gallery(x){const arr=photosOf(x);if(!arr.length)return null;const g=document.createElement('div');g.className='gal';arr.forEach(p=>{const im=document.createElement('img');im.src=PUB+p;im.loading='lazy';im.alt='';im.onclick=()=>lb(PUB+p);g.appendChild(im);});return g;}
 (async()=>{const d=await rpc('member_activities',{p_token:tk});if(d===null){$('note').textContent='তথ্য আনা যায়নি। আবার লগইন করে দেখুন।';return;}
  if(!d.length){$('note').textContent='এখনও কোনো কার্যক্রম যোগ করা হয়নি।';return;}
  d.forEach(x=>{const c=document.createElement('div');c.className='acard';
-  if(x.photo_path){const im=document.createElement('img');im.src=URL_+'/storage/v1/object/public/activity-photos/'+x.photo_path;im.loading='lazy';im.alt='';c.appendChild(im);}
+  const gl=gallery(x);if(gl)c.appendChild(gl);
   const b=document.createElement('div');b.className='body';const dt=document.createElement('div');dt.className='dt';dt.textContent=dfmt(x.act_date);const h=document.createElement('h3');h.textContent=x.title;b.appendChild(dt);b.appendChild(h);
   if(x.details){const p=document.createElement('p');p.textContent=x.details;b.appendChild(p);}
   if(x.amount){const a=document.createElement('div');a.className='amt';a.textContent='৳ '+bn(x.amount);b.appendChild(a);}

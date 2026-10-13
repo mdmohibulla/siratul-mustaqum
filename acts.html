@@ -6,7 +6,7 @@
 <div class="dash" id="cards"></div>
 <div class="card"><h3>🤝 নতুন কার্যক্রম / দান যোগ করুন</h3><div class="fg">
 <label>তারিখ<input type="date" id="a_d"></label><label>শিরোনাম<input id="a_t" maxlength="150" placeholder="যেমন: অসহায় বোনকে সহায়তা"></label>
-<label>টাকার পরিমাণ (ঐচ্ছিক)<input type="number" id="a_a" min="1"></label><label>ছবি (ঐচ্ছিক)<input type="file" id="a_f" accept="image/*"></label></div>
+<label>টাকার পরিমাণ (ঐচ্ছিক)<input type="number" id="a_a" min="1"></label><label>ছবি (একসাথে অনেকগুলো, সর্বোচ্চ ১০টি)<input type="file" id="a_f" accept="image/*" multiple></label></div>
 <label>বিবরণ<textarea id="a_s" rows="3" maxlength="800" style="width:100%;box-sizing:border-box;margin:6px 0;background:#020617;color:#fff;border:1px solid #334155;border-radius:10px;padding:10px"></textarea></label>
 <p style="color:#fbbf24">উপকারভোগীর অনুমতি ছাড়া ছবি বা পরিচয় প্রকাশ করবেন না।</p>
 <button id="a_b">যোগ করুন</button> <span id="a_m"></span></div>
@@ -23,6 +23,9 @@ async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
 
 const PUB=URL_+'/storage/v1/object/public/activity-photos/';
+const photosOf=x=>(x.photos&&x.photos.length)?x.photos:(x.photo_path?[x.photo_path]:[]);
+function lb(src){const o=document.createElement('div');o.className='lb';const i=document.createElement('img');i.src=src;o.appendChild(i);o.onclick=()=>o.remove();document.body.appendChild(o);}
+function gallery(x){const arr=photosOf(x);if(!arr.length)return null;const g=document.createElement('div');g.className='gal';arr.forEach(p=>{const im=document.createElement('img');im.src=PUB+p;im.loading='lazy';im.alt='';im.onclick=()=>lb(PUB+p);g.appendChild(im);});return g;}
 function compress(file){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,1280/Math.max(img.width,img.height));const w=Math.round(img.width*s),h=Math.round(img.height*s);
  const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(b=>b?res(b):rej(new Error('ছবি প্রসেস হয়নি')),'image/jpeg',0.82);URL.revokeObjectURL(u);};img.onerror=()=>rej(new Error('ছবি পড়া যায়নি'));img.src=u;});}
 async function load(){const rows=await api('activities?select=*&order=act_date.desc,created_at.desc')||[];
@@ -30,22 +33,23 @@ async function load(){const rows=await api('activities?select=*&order=act_date.d
  mk('blue','🤝',bn(rows.length),'মোট কার্যক্রম');mk('green','💚','৳ '+bn(sum(rows)),'মোট সহায়তা');
  const list=$('list');list.innerHTML='';
  rows.forEach(x=>{const d=document.createElement('div');d.className='acard';
-  if(x.photo_path){const im=document.createElement('img');im.src=PUB+x.photo_path;im.loading='lazy';im.alt='';d.appendChild(im);}
+  const gl=gallery(x);if(gl)d.appendChild(gl);
   const b=document.createElement('div');b.className='body';
   const dt=document.createElement('div');dt.className='dt';dt.textContent=dfmt(x.act_date);const h=document.createElement('h3');h.textContent=x.title;b.appendChild(dt);b.appendChild(h);
   if(x.details){const p=document.createElement('p');p.textContent=x.details;b.appendChild(p);}
   if(x.amount){const a=document.createElement('div');a.className='amt';a.textContent='৳ '+bn(x.amount);b.appendChild(a);}
   const del=document.createElement('button');del.className='alt red';del.textContent='মুছুন';del.style.marginTop='8px';
   del.onclick=async()=>{if(!confirm('এই কার্যক্রম মুছবেন?'))return;await api('activities?id=eq.'+x.id,{method:'DELETE'});
-   if(x.photo_path){try{await fetch(URL_+'/storage/v1/object/activity-photos/'+x.photo_path,{method:'DELETE',headers:{apikey:KEY,Authorization:'Bearer '+token}});}catch(e){}}load();};
+   for(const ph of photosOf(x)){try{await fetch(URL_+'/storage/v1/object/activity-photos/'+ph,{method:'DELETE',headers:{apikey:KEY,Authorization:'Bearer '+token}});}catch(e){}}load();};
   b.appendChild(del);d.appendChild(b);list.appendChild(d);});}
 $('a_b').onclick=async()=>{const t=$('a_t').value.trim();if(!t){alert('শিরোনাম দিন।');return;}
  const btn=$('a_b'),m=$('a_m');btn.disabled=true;m.textContent='অপেক্ষা করুন...';
- try{let path=null;const f=$('a_f').files[0];
-  if(f){const blob=await compress(f);path=Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
+ try{const files=[...$('a_f').files].slice(0,10);const paths=[];
+  for(let i=0;i<files.length;i++){m.textContent='ছবি '+bn(i+1)+'/'+bn(files.length)+' আপলোড হচ্ছে...';const blob=await compress(files[i]);
+   const path=Date.now()+'-'+i+'-'+Math.random().toString(36).slice(2,8)+'.jpg';
    const r=await fetch(URL_+'/storage/v1/object/activity-photos/'+path,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'image/jpeg'},body:blob});
-   if(!r.ok)throw new Error('ছবি আপলোড হয়নি: '+await r.text());}
-  await api('activities',{method:'POST',body:JSON.stringify({act_date:$('a_d').value||today(),title:t,details:$('a_s').value.trim()||null,amount:Number($('a_a').value)||null,photo_path:path})});
+   if(!r.ok)throw new Error('ছবি আপলোড হয়নি: '+await r.text());paths.push(path);}
+  await api('activities',{method:'POST',body:JSON.stringify({act_date:$('a_d').value||today(),title:t,details:$('a_s').value.trim()||null,amount:Number($('a_a').value)||null,photo_path:paths[0]||null,photos:paths})});
   $('a_t').value=$('a_s').value=$('a_a').value='';$('a_f').value='';m.textContent='যোগ হয়েছে ✓';load();
  }catch(e){m.textContent='';alert(e.message||'হয়নি');}
  btn.disabled=false;};

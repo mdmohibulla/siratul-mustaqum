@@ -78,3 +78,10 @@ button.red{background:#dc2626}
 .acard{background:#0b1220;border:1px solid #1e293b;border-radius:18px;overflow:hidden}
 .acard img{width:100%;height:200px;object-fit:cover;display:block}
 .acard .body{padding:14px 16px}.acard .dt{color:#93c5fd;font-size:14px}.acard h3{margin:4px 0 6px}.acard p{color:#dbe4f0}.acard .amt{color:#4ade80;font-weight:800}
+
+/* একাধিক ছবির গ্যালারি */
+.gal{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.acard .gal img{width:100%;height:150px;object-fit:cover;display:block;cursor:zoom-in}
+.acard .gal img:first-child:nth-last-child(odd){grid-column:1/-1;height:220px}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:grid;place-items:center;z-index:200;cursor:zoom-out}
+.lb img{max-width:96vw;max-height:92vh;border-radius:8px}
