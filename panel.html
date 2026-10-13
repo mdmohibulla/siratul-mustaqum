@@ -20,8 +20,8 @@
 </div>
 <div id="panel" class="hide">
 <div class="bar">
-<button id="t1" class="on">সাহায্যের আবেদন</button>
-<button id="t2" class="alt">সদস্য আবেদন</button>
+
+
 <button id="csv" class="alt">CSV ডাউনলোড</button>
 <span id="count"></span>
 </div>
@@ -67,7 +67,7 @@ function csv(){
  const lines=[COLS[table].map(c=>q(c[1])).join(',')].concat(rows.map(r=>COLS[table].map(c=>q(r[c[0]])).join(',')));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=table+'.csv';a.click();
 }
-$('go').onclick=login;$('out').onclick=logout;$('t1').onclick=()=>tab('help_requests');$('t2').onclick=()=>tab('member_applications');$('csv').onclick=csv;
+$('go').onclick=login;$('out').onclick=logout;$('csv').onclick=csv;
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 fetch(URL_+'/auth/v1/settings',{headers:{apikey:KEY}}).then(r=>r.json()).then(x=>{$('st').textContent='সার্ভার সংযোগ ঠিক আছে। ইমেইল লগইন: '+(x.external&&x.external.email?'চালু':'বন্ধ');}).catch(()=>{$('st').textContent='সার্ভারে সংযোগ হচ্ছে না।';});
 show();
