@@ -32,7 +32,7 @@ $('b1').onclick=()=>{$('lf').style.display='';$('rf').style.display='none';};
 $('b2').onclick=()=>{$('rf').style.display='';$('lf').style.display='none';};
 async function doLogin(ph,pw,msg){const j=await rpc('member_login',{p_phone:ph,p_password:pw});
  if(!j||!j.ok){msg.textContent=(j&&j.error)||'সংযোগে সমস্যা, আবার চেষ্টা করুন।';return false;}
- sessionStorage.setItem('mtk',j.token);location.href='profile.html';return true;}
+ sessionStorage.setItem('mtk',j.token);location.href='dashboard.html';return true;}
 $('lf').onsubmit=async e=>{e.preventDefault();$('lm').textContent='অপেক্ষা করুন...';await doLogin($('le').value,$('lp').value,$('lm'));};
 $('rf').onsubmit=async e=>{e.preventDefault();const m=$('rm');m.textContent='অপেক্ষা করুন...';
  const j=await rpc('member_register',{p_phone:$('rph').value,p_password:$('rp').value,p_name:$('rn').value,p_area:$('ra').value,p_occupation:$('ro').value});

@@ -1,0 +1,58 @@
+/* ডার্ক থিম — Math Strivers স্টাইল */
+:root{--bg:#020617;--card:#0b1220;--line:#1e293b;--tx:#e2e8f0;--mu:#94a3b8;--blue:#3b82f6;--sky:#60a5fa}
+html,body{background:var(--bg)!important;color:var(--tx)!important}
+a{color:var(--sky)}
+h1,h2,h3,h4,strong{color:#fff}
+p,small,li{color:var(--mu)}
+.site-header{background:var(--bg)!important;border-bottom:1px solid var(--line)!important;box-shadow:none!important}
+.brand,.brand strong{color:#fff!important}.brand small{color:var(--mu)!important}
+.brand-mark{background:linear-gradient(135deg,#3b82f6,#8b5cf6)!important;color:#fff!important}
+nav a{color:#cbd5e1!important}nav a:hover{color:#fff!important}
+nav a.nav-cta,.nav-cta{background:var(--blue)!important;color:#fff!important;border-radius:999px}
+.menu-toggle{background:var(--card)!important;color:#fff!important;border:1px solid var(--line)!important}
+nav.open{background:var(--card)!important;border:1px solid var(--line)!important}
+.hero{background:radial-gradient(circle at 20% 10%,#0f1f4a 0%,var(--bg) 60%)!important}
+.hero h1,.hero p{color:#fff!important}.hero p{color:var(--mu)!important}.hero em{color:var(--sky)!important;font-style:normal}
+.eyebrow{background:rgba(59,130,246,.15)!important;color:var(--sky)!important;border:1px solid rgba(59,130,246,.35)!important}
+.trust-note{color:var(--mu)!important}
+.arch{background:var(--card)!important;border:1px solid var(--line)!important;color:#fff!important}
+.button{border-radius:14px!important}
+.button-light,.button-primary{background:var(--blue)!important;color:#fff!important;border:0!important}
+.button-outline{background:transparent!important;color:var(--tx)!important;border:1px solid #334155!important}
+.section,.intro,.activities,.report-section{background:transparent!important}
+.section-heading h2{color:#fff!important}.section-heading p{color:var(--mu)!important}
+.value-card,.activity-card,.report-card,.application-form,.payment-card,.rules-list li,.report-notice,.box{background:var(--card)!important;border:1px solid var(--line)!important;color:var(--tx)!important;border-radius:18px!important;box-shadow:none!important}
+.donation-section{background:#030a1a!important;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.donation-section h2,.donation-section p{color:#fff!important}.donation-section p{color:var(--mu)!important}
+.payment-number{color:#fff!important}.donation-warning{color:#fde68a!important}
+.copy-btn{background:var(--blue)!important;color:#fff!important;border:0!important;border-radius:10px}
+.rules-list li::before{background:var(--blue)!important}
+.monthly-note{background:#1f1a0b!important;border:1px solid #854d0e!important;color:#fde68a!important}
+.status{background:rgba(34,197,94,.15)!important;color:#4ade80!important}
+label{color:#cbd5e1!important}
+input,select,textarea{background:var(--bg)!important;color:#fff!important;border:1px solid #334155!important;border-radius:12px!important}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--blue)!important}
+::placeholder{color:#64748b!important}
+input:disabled{opacity:.6}
+.form-note,.consent{color:var(--mu)!important}
+footer{background:var(--bg)!important;border-top:1px solid var(--line)!important;color:var(--mu)!important}
+footer p,footer span,footer a{color:var(--mu)!important}footer strong{color:#fff!important}
+table{color:var(--tx)}th{color:var(--sky)}td,th{border-color:var(--line)!important}
+/* ড্যাশবোর্ড */
+.wrapx{max-width:900px;margin:0 auto;padding:24px 16px}
+.greet{font-size:30px;font-weight:800;margin:6px 0}.greet span{color:var(--sky)}
+.lab{letter-spacing:.12em;font-size:13px;color:var(--sky);margin:22px 0 10px;text-transform:uppercase}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat{border-radius:18px;padding:18px;text-align:center;border:1px solid}
+.stat b{display:block;font-size:26px}.stat small{color:var(--mu)}
+.stat.blue{background:#0a1a3a;border-color:#1e3a8a}.stat.blue b{color:#60a5fa}
+.stat.green{background:#04200f;border-color:#14532d}.stat.green b{color:#4ade80}
+.stat.purple{background:#1a0b33;border-color:#4c1d95}.stat.purple b{color:#c084fc}
+.tile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:8px}
+.tile{display:block;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;text-decoration:none}
+.tile span{font-size:30px;display:block;margin-bottom:8px}.tile b{display:block;color:#fff;font-size:18px}.tile small{color:var(--mu)}
+/* নিচের মেনু */
+body.has-bn{padding-bottom:84px}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;background:rgba(2,6,23,.96);border-top:1px solid var(--line);padding:8px 0 10px;z-index:60}
+.bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--mu)!important;text-decoration:none}
+.bottom-nav a.on{color:var(--sky)!important;font-weight:700}

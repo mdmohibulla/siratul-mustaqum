@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123d32">
+<title>ড্যাশবোর্ড | সিরাতুল মুস্তাকিম</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="extra.css">
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="index.html" aria-label="হোম"><span class="brand-mark">س</span><span><strong>সিরাতুল মুস্তাকিম</strong><small>মানবতার পাশে, কল্যাণের পথে</small></span></a>
+<button class="menu-toggle" id="menuToggle" aria-label="মেনু খুলুন" aria-expanded="false">☰</button>
+<nav id="nav">
+<a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="rules.html">নীতিমালা</a><a href="member.html">সদস্য হোন</a><a href="activities.html">কার্যক্রম</a><a href="donate.html">অনুদান</a><a href="reports.html">হিসাব ও রিপোর্ট</a><a class="nav-cta" href="apply.html">সাহায্যের আবেদন</a>
+</nav>
+</header>
+<main>
+<div class="wrapx"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p>
+<h4 class="lab">আমার চাঁদা</h4>
+<div class="stat-grid"><div class="stat blue"><b id="d1">–</b><small>মাসিক চাঁদা</small></div><div class="stat green"><b id="d2">–</b><small>এই মাসে</small></div><div class="stat purple"><b id="d3">–</b><small>মোট জমা</small></div></div>
+<h4 class="lab">সংগঠন</h4>
+<div class="tile-grid">
+<a class="tile" href="rules.html"><span>📜</span><b>নীতিমালা</b><small>সংগঠনের মূল নীতি</small></a>
+<a class="tile" href="activities.html"><span>🤝</span><b>কার্যক্রম</b><small>সম্পন্ন ও চলমান কাজ</small></a>
+<a class="tile" href="reports.html"><span>📊</span><b>হিসাব ও রিপোর্ট</b><small>অনুদান ও ব্যয়ের হিসাব</small></a>
+<a class="tile" href="about.html"><span>ℹ️</span><b>আমাদের পরিচয়</b><small>লক্ষ্য ও মূল্যবোধ</small></a>
+<a class="tile" href="donate.html"><span>💚</span><b>অনুদান</b><small>সহযোগিতার নম্বর</small></a>
+<a class="tile" href="profile.html"><span>👤</span><b>আমার প্রোফাইল</b><small>তথ্য ও পাসওয়ার্ড</small></a>
+</div></div>
+<script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
+const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');
+(async()=>{let d=null;try{const r=await fetch(URL_+'/rest/v1/rpc/member_me',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:tk})});d=r.ok?await r.json():null;}catch(e){}
+ if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}
+ const M=d.member,ok=M.status==='approved';$('gn').textContent=M.name;
+ $('gs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
+ if(ok){const n=new Date(),cm=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
+  $('d1').textContent='৳ '+bn(M.monthly_amount);$('d2').textContent=d.payments.some(p=>p.month===cm)?'জমা ✓':'বাকি';
+  $('d3').textContent='৳ '+bn(d.payments.reduce((s,p)=>s+Number(p.amount),0));}})();</script>
+</main>
+<footer>
+<div class="footer-brand"><span class="brand-mark">س</span><div><strong>সিরাতুল মুস্তাকিম</strong><p>মানবতার পাশে, কল্যাণের পথে</p></div></div>
+<p class="footer-note">একটি মানবিক ও অরাজনৈতিক উদ্যোগ।</p>
+<div class="footer-bottom"><span>© <span id="year"></span> সিরাতুল মুস্তাকিম</span><a href="index.html">হোমে ফিরে যান</a></div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

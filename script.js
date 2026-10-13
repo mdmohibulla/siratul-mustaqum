@@ -3,6 +3,36 @@ const SUPABASE_KEY = 'sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 
 const menuToggle = document.getElementById('menuToggle');
 const nav = document.getElementById('nav');
+
+// ---- ডার্ক থিম, লগইন অবস্থা, মেনু ও গোপন পেজ ----
+const dk = document.createElement('link');
+dk.rel = 'stylesheet'; dk.href = 'dark.css';
+document.head.appendChild(dk);
+const MT = sessionStorage.getItem('mtk');
+const PAGE = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
+const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile'];
+if (PRIVATE_PAGES.includes(PAGE) && !MT) { document.body.style.display = 'none'; location.replace('member-login.html'); }
+if (PAGE === 'index' && MT) location.replace('dashboard.html');
+if (nav) {
+  const links = MT
+    ? [['dashboard.html','হোম'],['rules.html','নীতিমালা'],['activities.html','কার্যক্রম'],['reports.html','হিসাব ও রিপোর্ট'],['profile.html','প্রোফাইল']]
+    : [['index.html','হোম'],['donate.html','অনুদান'],['apply.html','সাহায্যের আবেদন']];
+  nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
+    (MT ? '<a href="#" id="navOut" class="nav-cta">লগআউট</a>' : '<a class="nav-cta" href="member-login.html">সদস্য লগইন</a>');
+  document.getElementById('navOut')?.addEventListener('click', async e => {
+    e.preventDefault();
+    try { await fetch(`${SUPABASE_URL}/rest/v1/rpc/member_logout`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: MT }) }); } catch (x) {}
+    sessionStorage.removeItem('mtk'); location.href = 'index.html';
+  });
+}
+if (MT) {
+  document.body.classList.add('has-bn');
+  const bnav = document.createElement('div');
+  bnav.className = 'bottom-nav';
+  bnav.innerHTML = [['dashboard','🏠','হোম'],['activities','📋','কার্যক্রম'],['reports','📊','রিপোর্ট'],['profile','👤','প্রোফাইল']]
+    .map(([p, i, t]) => `<a href="${p}.html" class="${PAGE === p ? 'on' : ''}"><span style="font-size:22px">${i}</span>${t}</a>`).join('');
+  document.body.appendChild(bnav);
+}
 menuToggle?.addEventListener('click', () => {
   const isOpen = nav.classList.toggle('open');
   menuToggle.setAttribute('aria-expanded', String(isOpen));
@@ -78,11 +108,3 @@ if (payGrid) {
   payGrid.insertAdjacentElement('afterend', link);
 }
 
-// মেনুতে সদস্য লগইন লিংক
-if (nav && !nav.querySelector('[href="member-login.html"]')) {
-  const ml = document.createElement('a');
-  ml.href = 'member-login.html';
-  ml.textContent = 'সদস্য লগইন';
-  const cta = nav.querySelector('.nav-cta');
-  cta ? nav.insertBefore(ml, cta) : nav.appendChild(ml);
-}
