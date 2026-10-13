@@ -8,9 +8,8 @@
 <link rel="stylesheet" href="admin-dark.css">
 </head>
 <body>
-<header><strong>মাসিক চাঁদার হিসাব</strong></header>
+<header><strong>মাসিক চাঁদার হিসাব</strong><a href="panel.html">← ড্যাশবোর্ড</a></header>
 <main>
-<div class="amenu"><a class="blue" href="panel.html"><span>📥</span><b>সাহায্যের আবেদন</b></a><a class="green on" href="chanda.html"><span>👥</span><b>সদস্য ও চাঁদা</b></a><a class="purple" href="donations.html"><span>💚</span><b>অনুদানের তালিকা</b></a></div>
 <div class="card" id="need" style="display:none">আগে <a href="panel.html">panel.html</a> এ লগইন করুন, তারপর এই পেজ খুলুন।</div>
 <div id="app" style="display:none">
 <div class="card" id="pendCard" style="display:none"><b>অনুমোদনের অপেক্ষায় নতুন সদস্য</b><div id="pend"></div></div>
@@ -54,7 +53,7 @@ async function load(){
  ms.forEach(m=>{
   exp+=Number(m.monthly_amount);const p=pm[m.id];const tr=document.createElement('tr');
   const cell=t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);return td;};
-  cell(m.name);cell(m.phone||'');cell('৳ '+bn(m.monthly_amount));
+  {const nt=cell('');const al=document.createElement('a');al.href='mprofile.html?id='+m.id;al.textContent=m.name;nt.appendChild(al);}cell(m.phone||'');cell('৳ '+bn(m.monthly_amount));
   const st=cell('');
   if(p){got+=Number(p.amount);st.textContent='জমা ✓ ৳'+bn(p.amount);st.className='ok';}
   else{pend++;
