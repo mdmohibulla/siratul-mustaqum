@@ -1,5 +1,5 @@
 /* ডার্ক থিম — Math Strivers স্টাইল */
-:root{--bg:#020617;--card:#0b1220;--line:#1e293b;--tx:#e2e8f0;--mu:#94a3b8;--blue:#3b82f6;--sky:#60a5fa}
+:root{--bg:#020617;--card:#0b1220;--line:#1e293b;--tx:#f1f5f9;--mu:#cbd5e1;--blue:#3b82f6;--sky:#60a5fa}
 html,body{background:var(--bg)!important;color:var(--tx)!important}
 a{color:var(--sky)}
 h1,h2,h3,h4,strong{color:#fff}
@@ -56,3 +56,23 @@ body.has-bn{padding-bottom:84px}
 .bottom-nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;background:rgba(2,6,23,.96);border-top:1px solid var(--line);padding:8px 0 10px;z-index:60}
 .bottom-nav a{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--mu)!important;text-decoration:none}
 .bottom-nav a.on{color:var(--sky)!important;font-weight:700}
+
+/* স্পষ্টতা বাড়ানো — সব লেখা উজ্জ্বল */
+body{font-size:17px!important;line-height:1.8!important}
+h1,h2,h3,h4,h5,h6,strong,.value-card h3,.activity-card h3,.payment-card h3,.report-card strong,.brand strong{color:#fff!important}
+p,li,small,td,label,.form-note,.consent,.report-card p,.value-card p,.activity-card p,.payment-card p,.section-heading p,.footer-note{color:#dbe4f0!important}
+.hero p{color:#e2e8f0!important}
+.value-icon,.activity-symbol{background:#12274d!important;color:#93c5fd!important;border:1px solid #1e3a8a!important}
+.report-label,.eyebrow,.eyebrow.dark,th{color:#93c5fd!important}
+.status{color:#4ade80!important}
+nav a{color:#e2e8f0!important}
+a{color:#7dd3fc}
+.brand small{color:#cbd5e1!important}
+footer,footer p,footer span,footer small{color:#cbd5e1!important}footer a{color:#7dd3fc!important}footer strong{color:#fff!important}
+.stat small,.tile small{color:#dbe4f0!important}
+.payment-number{color:#fff!important}
+.donation-warning,.monthly-note,.monthly-note strong{color:#fde68a!important}
+::placeholder{color:#94a3b8!important}
+option{background:#0b1220;color:#fff}
+.button-light,.button-primary,.nav-cta,.copy-btn,.button-outline{color:#fff!important}
+.rules-list li{color:#f1f5f9!important}

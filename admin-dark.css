@@ -1,0 +1,31 @@
+body{margin:0;font-family:system-ui,"Noto Sans Bengali",sans-serif;background:#020617;color:#f1f5f9;font-size:16px;line-height:1.7}
+header{background:#0b1220;border-bottom:1px solid #1e293b;color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header strong{color:#fff;font-size:18px}
+header a{color:#7dd3fc;text-decoration:none;font-weight:600}
+a{color:#7dd3fc}
+main{max-width:1100px;margin:20px auto;padding:0 14px}
+.box,.card{background:#0b1220;border:1px solid #1e293b;border-radius:16px;padding:18px;margin-bottom:14px;color:#f1f5f9}
+.box{max-width:380px;margin:40px auto}
+h3{color:#fff;margin-top:0}
+label{color:#e2e8f0}
+input{padding:10px;border:1px solid #334155;border-radius:10px;font-size:15px;background:#020617;color:#fff;margin:3px}
+input:focus{outline:0;border-color:#3b82f6}
+.box input{width:100%;box-sizing:border-box;margin:6px 0 12px}
+::placeholder{color:#94a3b8}
+button{background:#3b82f6;color:#fff;border:0;padding:9px 14px;border-radius:10px;cursor:pointer;font-size:14px;margin-right:4px}
+button.alt{background:transparent;color:#93c5fd;border:1px solid #3b82f6}
+button.on{background:#3b82f6;color:#fff}
+button.red{background:#dc2626;color:#fff}
+button.alt.red{background:transparent;color:#f87171;border:1px solid #ef4444}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+#count{color:#cbd5e1}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;color:#f1f5f9}
+th,td{padding:10px;border-bottom:1px solid #1e293b;text-align:left;vertical-align:top;font-size:14.5px}
+th{background:#111c33;color:#93c5fd}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sum div{background:#0a1a3a;border:1px solid #1e3a8a;border-radius:12px;padding:12px;color:#cbd5e1}
+.sum b{display:block;font-size:22px;color:#fff}
+.ok{color:#4ade80;font-weight:700}.late{color:#f87171;font-weight:700}.due,.wait{color:#fbbf24;font-weight:700}
+#msg{color:#f87171;min-height:20px}
+.hide{display:none}
