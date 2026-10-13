@@ -29,3 +29,15 @@ th{background:#111c33;color:#93c5fd}
 .ok{color:#4ade80;font-weight:700}.late{color:#f87171;font-weight:700}.due,.wait{color:#fbbf24;font-weight:700}
 #msg{color:#f87171;min-height:20px}
 .hide{display:none}
+
+.amenu{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.amenu a{display:block;text-align:center;text-decoration:none;border-radius:16px;padding:16px 10px;border:1px solid}
+.amenu a span{display:block;font-size:28px}
+.amenu a b{display:block;font-size:16px;margin-top:4px}
+.amenu a.blue{background:#0a1a3a;border-color:#1e3a8a}.amenu a.blue b{color:#60a5fa}
+.amenu a.green{background:#04200f;border-color:#14532d}.amenu a.green b{color:#4ade80}
+.amenu a.purple{background:#1a0b33;border-color:#4c1d95}.amenu a.purple b{color:#c084fc}
+.amenu a.on{outline:2px solid rgba(255,255,255,.45);outline-offset:2px}
+#t1.on{background:#1d4ed8}#t2.on{background:#7e22ce}
+#t1.alt{border-color:#3b82f6;color:#60a5fa}#t2.alt{border-color:#a855f7;color:#c084fc}
+#csv{background:transparent;border:1px solid #22c55e;color:#4ade80}

@@ -76,3 +76,17 @@ footer,footer p,footer span,footer small{color:#cbd5e1!important}footer a{color:
 option{background:#0b1220;color:#fff}
 .button-light,.button-primary,.nav-cta,.copy-btn,.button-outline{color:#fff!important}
 .rules-list li{color:#f1f5f9!important}
+
+/* রঙিন টাইল — চাঁদার কার্ডের মতো */
+.tile-grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;gap:12px!important}
+.tile{text-align:center;padding:20px 12px!important;border:1px solid;transition:transform .15s}
+.tile:active,.tile:hover{transform:translateY(-2px)}
+.tile span{font-size:32px!important;margin-bottom:6px!important}
+.tile b{font-size:17px!important}
+.tile small{display:block;margin-top:2px}
+.tile.blue{background:#0a1a3a!important;border-color:#1e3a8a!important}.tile.blue b{color:#60a5fa!important}
+.tile.green{background:#04200f!important;border-color:#14532d!important}.tile.green b{color:#4ade80!important}
+.tile.purple{background:#1a0b33!important;border-color:#4c1d95!important}.tile.purple b{color:#c084fc!important}
+.tile.amber{background:#271a05!important;border-color:#92400e!important}.tile.amber b{color:#fbbf24!important}
+.tile.pink{background:#2a0a1c!important;border-color:#9d174d!important}.tile.pink b{color:#f472b6!important}
+.tile.cyan{background:#052229!important;border-color:#155e75!important}.tile.cyan b{color:#22d3ee!important}
