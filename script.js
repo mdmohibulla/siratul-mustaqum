@@ -8,6 +8,14 @@ const nav = document.getElementById('nav');
 const dk = document.createElement('link');
 dk.rel = 'stylesheet'; dk.href = 'dark.css';
 document.head.appendChild(dk);
+const fav = document.createElement('link');
+fav.rel = 'icon'; fav.type = 'image/png'; fav.href = 'favicon.png';
+document.head.appendChild(fav);
+document.querySelectorAll('.brand-mark').forEach(el => {
+  const im = document.createElement('img');
+  im.src = 'logo.png'; im.alt = 'সিরাতুল মুস্তাকিম'; im.className = 'brand-logo';
+  el.replaceWith(im);
+});
 const MT = sessionStorage.getItem('mtk');
 const PAGE = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
 const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile'];

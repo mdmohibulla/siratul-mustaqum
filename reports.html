@@ -21,7 +21,7 @@
 <div class="stat-grid" id="top"></div>
 <h4 class="lab">জমার উৎস</h4><div class="stat-grid" id="src"></div>
 <h4 class="lab">খরচের তালিকা</h4><div id="ex"></div>
-<h4 class="lab">অন্যান্য জমা</h4><div id="inc"></div></div>
+<h4 class="lab">যোগ করা টাকার তালিকা</h4><div id="inc"></div></div>
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
 async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
 function stat(box,cls,v,l){const d=document.createElement('div');d.className='stat '+cls;d.innerHTML='<b></b><small></small>';d.children[0].textContent=v;d.children[1].textContent=l;$(box).appendChild(d);}
@@ -30,8 +30,8 @@ function entries(box,arr,inc){const el=$(box);if(!arr.length){el.textContent='�
   const a=document.createElement('div');a.className='amt'+(inc?' in':'');a.textContent='৳ '+bn(x.amount);e.appendChild(l);e.appendChild(a);el.appendChild(e);});}
 (async()=>{const d=await rpc('member_report',{p_token:tk});if(!d){$('note').textContent='তথ্য আনা যায়নি। আবার লগইন করে দেখুন।';return;}
  const tot=Number(d.chanda)+Number(d.donation)+Number(d.other),ex=Number(d.expense);
- stat('top','green','৳ '+bn(tot),'মোট জমা');stat('top','pink','৳ '+bn(ex),'মোট খরচ');stat('top','purple','৳ '+bn(tot-ex),'অবশিষ্ট');
- stat('src','blue','৳ '+bn(d.chanda),'সদস্যদের চাঁদা');stat('src','cyan','৳ '+bn(d.donation),'অনুদান');stat('src','amber','৳ '+bn(d.other),'অন্যান্য জমা');
+ stat('top','green','৳ '+bn(tot),'মোট টাকার পরিমাণ');stat('top','pink','৳ '+bn(ex),'মোট খরচ');stat('top','purple','৳ '+bn(tot-ex),'অবশিষ্ট');
+ stat('src','blue','৳ '+bn(d.chanda),'সদস্যদের চাঁদা');stat('src','cyan','৳ '+bn(d.donation),'অনুদান');stat('src','amber','৳ '+bn(d.other),'যোগ করা টাকা');
  entries('ex',d.expenses,false);entries('inc',d.incomes,true);})();
 </script>
 </main>

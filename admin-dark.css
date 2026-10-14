@@ -85,3 +85,6 @@ button.red{background:#dc2626}
 .acard .gal img:first-child:nth-last-child(odd){grid-column:1/-1;height:220px}
 .lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:grid;place-items:center;z-index:200;cursor:zoom-out}
 .lb img{max-width:96vw;max-height:92vh;border-radius:8px}
+
+/* লোগো */
+header strong::before{content:"";display:inline-block;width:52px;height:40px;margin-right:10px;vertical-align:middle;background:url(logo.png) center/contain no-repeat}

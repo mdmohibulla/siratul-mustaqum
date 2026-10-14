@@ -118,3 +118,9 @@ option{background:#0b1220;color:#fff}
 .rem.amber{background:#271a05;border-color:#92400e}.rem.red{background:#2a0a0a;border-color:#b91c1c}.rem.green{background:#04200f;border-color:#14532d}
 .mbk{position:fixed;inset:0;background:rgba(0,0,0,.75);display:grid;place-items:center;z-index:300;padding:20px}
 .mbox{background:#0b1220;border:1px solid #334155;border-radius:20px;padding:26px;max-width:380px;text-align:center}
+
+/* লোগো */
+.brand-logo{height:48px;width:auto;display:block;flex:none}
+footer .brand-logo{height:64px}
+.hero-art{display:flex;align-items:center;justify-content:center}
+.hero-logo{width:100%;max-width:440px;height:auto;display:block;margin:0 auto;filter:drop-shadow(0 12px 40px rgba(59,130,246,.28))}

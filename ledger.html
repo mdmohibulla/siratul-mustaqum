@@ -6,7 +6,7 @@
 <div class="dash" id="cards"></div>
 <div class="two">
 <div class="card"><h3>💸 খরচ যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="e_d"></label><label>খরচের বিবরণ<input id="e_t" maxlength="150" placeholder="যেমন: রোগীর ওষুধ"></label><label>টাকা<input type="number" id="e_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="e_n" maxlength="200"></label></div><button id="e_b" class="red">খরচ লিখুন</button><div id="e_l" style="margin-top:14px"></div></div>
-<div class="card"><h3>➕ অন্যান্য জমা যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="i_d"></label><label>জমার বিবরণ<input id="i_t" maxlength="150" placeholder="যেমন: নগদ অনুদান"></label><label>টাকা<input type="number" id="i_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="i_n" maxlength="200"></label></div><button id="i_b">জমা লিখুন</button><div id="i_l" style="margin-top:14px"></div></div>
+<div class="card"><h3>➕ মোট টাকার পরিমাণে টাকা যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="i_d"></label><label>টাকার উৎস / বিবরণ<input id="i_t" maxlength="150" placeholder="যেমন: নগদ অনুদান"></label><label>টাকা<input type="number" id="i_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="i_n" maxlength="200"></label></div><button id="i_b">টাকা যোগ করুন</button><div id="i_l" style="margin-top:14px"></div></div>
 </div></div></main>
 <script>
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
@@ -31,8 +31,8 @@ async function load(){
  const [pay,don,led]=await Promise.all([api('payments?select=amount'),api('donations?select=amount,verified'),api('ledger?select=*&order=entry_date.desc,created_at.desc')]);
  LED=led||[];const ch=sum(pay||[]),dn=sum((don||[]).filter(x=>x.verified)),ot=sum(LED.filter(x=>x.kind==='income')),ex=sum(LED.filter(x=>x.kind==='expense'));
  const tot=ch+dn+ot;const c=$('cards');c.innerHTML='';
- card(c,'green','💰','৳ '+bn(tot),'মোট জমা');card(c,'pink','💸','৳ '+bn(ex),'মোট খরচ');card(c,'purple','🏦','৳ '+bn(tot-ex),'অবশিষ্ট');
- card(c,'blue','👥','৳ '+bn(ch),'সদস্যদের চাঁদা');card(c,'cyan','💚','৳ '+bn(dn),'যাচাই করা অনুদান');card(c,'amber','➕','৳ '+bn(ot),'অন্যান্য জমা');
+ card(c,'green','💰','৳ '+bn(tot),'মোট টাকার পরিমাণ');card(c,'pink','💸','৳ '+bn(ex),'মোট খরচ');card(c,'purple','🏦','৳ '+bn(tot-ex),'অবশিষ্ট');
+ card(c,'blue','👥','৳ '+bn(ch),'সদস্যদের চাঁদা');card(c,'cyan','💚','৳ '+bn(dn),'যাচাই করা অনুদান');card(c,'amber','➕','৳ '+bn(ot),'অ্যাডমিনের যোগ করা টাকা');
  list('expense','e_l');list('income','i_l');}
 async function add(k,p){const t=$(p+'_t').value.trim(),a=Number($(p+'_a').value),d=$(p+'_d').value||today();
  if(!t||!(a>0)){alert('বিবরণ ও টাকা দিন।');return;}
