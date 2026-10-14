@@ -124,3 +124,7 @@ option{background:#0b1220;color:#fff}
 footer .brand-logo{height:64px}
 .hero-art{display:flex;align-items:center;justify-content:center}
 .hero-logo{width:100%;max-width:440px;height:auto;display:block;margin:0 auto;filter:drop-shadow(0 12px 40px rgba(59,130,246,.28))}
+
+/* পার্সোনাল নম্বরের ট্যাগ */
+.pay-type{display:inline-block;margin:10px 0 4px;padding:5px 14px;border-radius:999px;background:rgba(251,191,36,.14);border:1px solid #b45309;color:#fbbf24;font-weight:700;font-size:15px}
+.pay-how{display:block;margin-bottom:8px;color:#dbe4f0!important}

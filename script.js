@@ -116,3 +116,20 @@ if (payGrid) {
   payGrid.insertAdjacentElement('afterend', link);
 }
 
+
+// বিকাশ/নগদ কার্ডে "পার্সোনাল নম্বর" লেখা
+document.querySelectorAll('.payment-card').forEach(card => {
+  const label = card.querySelector('p');
+  if (label) label.textContent = 'সংগঠনের অনুদান নম্বর';
+  const num = card.querySelector('.payment-number');
+  if (num) {
+    const tag = document.createElement('div');
+    tag.className = 'pay-type';
+    tag.textContent = '👤 পার্সোনাল নম্বর';
+    num.insertAdjacentElement('afterend', tag);
+    const how = document.createElement('small');
+    how.className = 'pay-how';
+    how.textContent = 'অ্যাপে "Send Money" অপশন বেছে নিন';
+    tag.insertAdjacentElement('afterend', how);
+  }
+});
