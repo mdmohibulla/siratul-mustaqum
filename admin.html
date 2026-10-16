@@ -37,9 +37,11 @@ th{background:#eef3f0}
 <div class="bar">
 <button id="t1" class="on">সাহায্যের আবেদন</button>
 <button id="t2" class="alt">সদস্য আবেদন</button>
+<button id="t3" class="alt">বিভিন্ন বকেয়া</button>
 <button id="csv" class="alt">CSV ডাউনলোড</button>
 <span id="count"></span>
 </div>
+<p id="arrearsHelp" class="hide">প্রত্যেক সদস্যের আগের/অন্যান্য বকেয়ার টাকা ও কারণ লিখে সংরক্ষণ করুন।</p>
 <div class="wrap"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
 </div>
 </main>
@@ -49,19 +51,22 @@ const COLS={
 help_requests:[['created_at','তারিখ'],['name','নাম'],['phone','ফোন'],['area','এলাকা'],['type','ধরন'],['details','বিবরণ']],
 member_applications:[['created_at','তারিখ'],['name','নাম'],['phone','ফোন'],['area','এলাকা'],['occupation','পেশা'],['reason','কারণ']]};
 let token=sessionStorage.getItem('tk'),table='help_requests',rows=[];
+let mode='requests';
 const $=id=>document.getElementById(id);
 function show(){const ok=!!token;$('login').classList.toggle('hide',ok);$('panel').classList.toggle('hide',!ok);$('out').classList.toggle('hide',!ok);if(ok)load();}
 async function login(){
  $('msg').textContent='';
  try{
   const r=await fetch(URL_+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email:$('em').value.trim(),password:$('pw').value})});
-  const j=await r.json();
-  if(!r.ok||!j.access_token)throw 0;
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok||!j.access_token){$('msg').textContent='লগইন হয়নি ('+r.status+'): '+(j.msg||j.error_description||j.message||j.error||'অজানা কারণ');return;}
   token=j.access_token;sessionStorage.setItem('tk',token);$('pw').value='';show();
- }catch(e){$('msg').textContent='ইমেইল বা পাসওয়ার্ড ভুল।';}
+ }catch(e){$('msg').textContent='সংযোগে সমস্যা: '+e.message;}
 }
 function logout(){token=null;sessionStorage.removeItem('tk');show();}
 async function load(){
+ if(mode==='arrears'){await loadArrears();return;}
+ $('arrearsHelp').classList.add('hide');
  const r=await fetch(`${URL_}/rest/v1/${table}?select=*&order=created_at.desc`,{headers:{apikey:KEY,Authorization:'Bearer '+token}});
  if(r.status===401){logout();return;}
  rows=await r.json();if(!Array.isArray(rows))rows=[];
@@ -74,13 +79,31 @@ async function load(){
   tb.appendChild(tr);});
  $('count').textContent='মোট: '+rows.length+' টি';
 }
-function tab(t){table=t;$('t1').className=t==='help_requests'?'on':'alt';$('t2').className=t==='member_applications'?'on':'alt';load();}
+function tab(t){mode='requests';table=t;$('t1').className=t==='help_requests'?'on':'alt';$('t2').className=t==='member_applications'?'on':'alt';$('t3').className='alt';$('csv').classList.remove('hide');load();}
+async function loadArrears(){
+ $('arrearsHelp').classList.remove('hide');$('th').innerHTML='';$('tb').innerHTML='';$('count').textContent='লোড হচ্ছে…';
+ const r=await fetch(`${URL_}/rest/v1/members?select=id,name,phone,other_arrears,arrears_note,status,active&order=name.asc`,{headers:{apikey:KEY,Authorization:'Bearer '+token}});
+ if(r.status===401){logout();return;}
+ const data=await r.json().catch(()=>[]);
+ if(!r.ok||!Array.isArray(data)){ $('count').textContent='লোড হয়নি। SQL সেটআপ চালানো হয়েছে কি না দেখুন।'; return; }
+ rows=data;const hr=document.createElement('tr');
+ ['সদস্যের নাম','ফোন','বকেয়া (টাকা)','বকেয়ার কারণ','কাজ'].forEach(v=>{const th=document.createElement('th');th.textContent=v;hr.appendChild(th);});$('th').appendChild(hr);
+ let total=0;
+ data.forEach(m=>{total+=Number(m.other_arrears||0);const tr=document.createElement('tr');
+ const name=document.createElement('td');name.textContent=m.name||'—';tr.appendChild(name);
+ const phone=document.createElement('td');phone.textContent=m.phone||'—';tr.appendChild(phone);
+ const amountTd=document.createElement('td');const amount=document.createElement('input');amount.type='number';amount.min='0';amount.step='0.01';amount.value=Number(m.other_arrears||0);amount.style.width='130px';amountTd.appendChild(amount);tr.appendChild(amountTd);
+ const noteTd=document.createElement('td');const note=document.createElement('input');note.type='text';note.maxLength=250;note.placeholder='যেমন: পুরোনো চাঁদা';note.value=m.arrears_note||'';noteTd.appendChild(note);tr.appendChild(noteTd);
+ const actionTd=document.createElement('td');const save=document.createElement('button');save.textContent='সংরক্ষণ';save.onclick=async()=>{const v=Number(amount.value);if(!Number.isFinite(v)||v<0){alert('সঠিক বকেয়ার পরিমাণ লিখুন');return;}save.disabled=true;save.textContent='সংরক্ষণ হচ্ছে…';try{const resp=await fetch(`${URL_}/rest/v1/members?id=eq.${encodeURIComponent(m.id)}`,{method:'PATCH',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({other_arrears:v,arrears_note:note.value.trim()})});if(!resp.ok){const er=await resp.text();throw new Error(er||resp.status);}alert('বকেয়া সংরক্ষণ হয়েছে');await loadArrears();}catch(e){alert('সংরক্ষণ হয়নি। SQL/RLS সেটিংস পরীক্ষা করুন। '+e.message);save.disabled=false;save.textContent='সংরক্ষণ';}};actionTd.appendChild(save);tr.appendChild(actionTd);$('tb').appendChild(tr);});
+ $('count').textContent='মোট সদস্য: '+data.length+' | মোট বিভিন্ন বকেয়া: ৳ '+total.toLocaleString('bn-BD');
+}
+function arrearsTab(){mode='arrears';$('t1').className='alt';$('t2').className='alt';$('t3').className='on';$('csv').classList.add('hide');load();}
 function csv(){
  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
  const lines=[COLS[table].map(c=>q(c[1])).join(',')].concat(rows.map(r=>COLS[table].map(c=>q(r[c[0]])).join(',')));
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}));a.download=table+'.csv';a.click();
 }
-$('go').onclick=login;$('out').onclick=logout;$('t1').onclick=()=>tab('help_requests');$('t2').onclick=()=>tab('member_applications');$('csv').onclick=csv;
+$('go').onclick=login;$('out').onclick=logout;$('t1').onclick=()=>tab('help_requests');$('t2').onclick=()=>tab('member_applications');$('t3').onclick=arrearsTab;$('csv').onclick=csv;
 $('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
 show();
 </script>
