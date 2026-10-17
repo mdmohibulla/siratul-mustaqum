@@ -17,7 +17,7 @@
 </nav>
 </header>
 <main>
-<div class="wrapx"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p><div id="rem"></div>
+<div class="wrapx"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p><div id="rem"></div><div id="duebox"></div>
 <h4 class="lab">আমার চাঁদা</h4>
 <div class="stat-grid"><div class="stat blue"><b id="d1">–</b><small>মাসিক চাঁদা</small></div><div class="stat green"><b id="d2">–</b><small>এই মাসে</small></div><div class="stat purple"><b id="d3">–</b><small>মোট জমা</small></div></div>
 <h4 class="lab">সংগঠন</h4>
@@ -55,13 +55,20 @@ function icsDownload(){
   return ['BEGIN:VEVENT','UID:'+uid+'@siratul-mustaqim','DTSTAMP:'+n.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z','DTSTART:'+ds+'T090000','DTEND:'+ds+'T093000','RRULE:FREQ=MONTHLY;BYMONTHDAY='+day,'SUMMARY:'+sum,'DESCRIPTION:'+desc,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+sum,'TRIGGER:PT0S','END:VALARM','END:VEVENT'];};
  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Siratul Mustaqim//BN'].concat(ev('chanda7',7,'মাসিক চাঁদার রিমাইন্ডার','১০ তারিখের মধ্যে সংগঠনের মাসিক চাঁদা দিন।'),ev('chanda10',10,'আজ চাঁদা দেওয়ার শেষ দিন','আজ ১০ তারিখ, মাসিক চাঁদা দিন।'),['END:VCALENDAR']);
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([L.join('\r\n')],{type:'text/calendar;charset=utf-8'}));a.download='chanda-reminder.ics';a.click();}
+function dueList(d){const L=(d.dues||[]).filter(x=>!x.paid);if(!L.length)return;const t=L.reduce((s,x)=>s+Number(x.amount),0);
+ const box=$('duebox');box.innerHTML='';const r=document.createElement('div');r.className='rem red';
+ const i=document.createElement('span');i.className='i';i.textContent='💳';
+ const c=document.createElement('div');c.className='t';c.textContent='আপনার বিগত বকেয়া চাঁদা আছে — মোট ৳ '+bn(t);
+ L.forEach(x=>{const e=document.createElement('div');e.style.cssText='font-weight:500;margin-top:6px;font-size:16px';e.textContent='• '+x.month+' মাস: ৳ '+bn(x.amount)+(x.note?' ('+x.note+')':'');c.appendChild(e);});
+ const a=document.createElement('a');a.href='donate.html';a.className='button button-primary';a.textContent='💚 কীভাবে দেবেন';a.style.marginTop='10px';a.style.display='inline-block';c.appendChild(a);
+ r.appendChild(i);r.appendChild(c);box.appendChild(r);}
 (async()=>{let d=null;try{const r=await fetch(URL_+'/rest/v1/rpc/member_me',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:tk})});d=r.ok?await r.json():null;}catch(e){}
  if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}
  const M=d.member,ok=M.status==='approved';$('gn').textContent=M.name;
  $('gs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
  if(ok){const n=new Date(),cm=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
   $('d1').textContent='৳ '+bn(M.monthly_amount);$('d2').textContent=d.payments.some(p=>p.month===cm)?'জমা ✓':'বাকি';
-  $('d3').textContent='৳ '+bn(d.payments.reduce((s,p)=>s+Number(p.amount),0));reminder(M,d);}})();</script>
+  $('d3').textContent='৳ '+bn(d.payments.reduce((s,p)=>s+Number(p.amount),0));reminder(M,d);dueList(d);}})();</script>
 </main>
 <footer>
 <div class="footer-brand"><span class="brand-mark">س</span><div><strong>সিরাতুল মুস্তাকিম</strong><p>মানবতার পাশে, কল্যাণের পথে</p></div></div>

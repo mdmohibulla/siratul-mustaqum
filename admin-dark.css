@@ -88,3 +88,5 @@ button.red{background:#dc2626}
 
 /* লোগো */
 header strong::before{content:"";display:inline-block;width:52px;height:40px;margin-right:10px;vertical-align:middle;background:url(logo.png) center/contain no-repeat}
+
+.dcard.red{background:#2a0a0a;border-color:#b91c1c}.dcard.red b{color:#f87171}

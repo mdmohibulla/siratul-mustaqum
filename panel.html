@@ -15,6 +15,7 @@
 <a class="dcard green" href="ledger.html"><span>💰</span><b id="n_tot">–</b><small>মোট টাকার পরিমাণ</small></a>
 <a class="dcard pink" href="ledger.html"><span>💸</span><b id="n_exp">–</b><small>মোট খরচ</small></a>
 <a class="dcard purple" href="ledger.html"><span>🏦</span><b id="n_bal">–</b><small>অবশিষ্ট টাকা</small></a>
+<a class="dcard red" href="chanda.html"><span>💳</span><b id="n_dues">–</b><small>মোট বকেয়া টাকা</small></a>
 <a class="dcard amber" href="chanda.html"><span>⏰</span><b id="n_due">–</b><small>এই মাসে বকেয়া সদস্য</small></a>
 <a class="dcard cyan" href="#" id="c1"><span>⬇️</span><b>CSV</b><small>সদস্য তালিকা</small></a>
 <a class="dcard amber" href="#" id="c2"><span>⬇️</span><b>CSV</b><small>সাহায্যের আবেদন</small></a>
@@ -43,7 +44,8 @@ async function counts(){try{
  $('n_pay').textContent='৳ '+bn(p.reduce((s,x)=>s+Number(x.amount),0));$('n_due').textContent=bn(m.filter(x=>x.status==='approved'&&!p.some(y=>y.member_id===x.id)).length);}catch(e){}
  try{const [ap,pa,dn,lg]=await Promise.all([api('activities?select=id'),api('payments?select=amount'),api('donations?select=amount,verified'),api('ledger?select=kind,amount')]);
   $('n_act').textContent=bn(ap.length);const inc=pa.reduce((s,x)=>s+Number(x.amount),0)+dn.filter(x=>x.verified).reduce((s,x)=>s+Number(x.amount),0)+lg.filter(x=>x.kind==='income').reduce((s,x)=>s+Number(x.amount),0);
-  const ex=lg.filter(x=>x.kind==='expense').reduce((s,x)=>s+Number(x.amount),0);$('n_tot').textContent='৳ '+bn(inc);$('n_exp').textContent='৳ '+bn(ex);$('n_bal').textContent='৳ '+bn(inc-ex);}catch(e){}}
+  const ex=lg.filter(x=>x.kind==='expense').reduce((s,x)=>s+Number(x.amount),0);$('n_tot').textContent='৳ '+bn(inc);$('n_exp').textContent='৳ '+bn(ex);$('n_bal').textContent='৳ '+bn(inc-ex);}catch(e){}
+ try{const r=await fetch(URL_+'/rest/v1/dues?select=amount&paid=eq.false',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){const x=await r.json();$('n_dues').textContent='৳ '+bn(x.reduce((s,y)=>s+Number(y.amount),0));}}catch(e){}}
 async function dl(path,cols,name){const rows=await api(path)||[];
  const q=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
  const lines=[cols.map(c=>q(c[1])).join(',')].concat(rows.map(r=>cols.map(c=>q(r[c[0]])).join(',')));

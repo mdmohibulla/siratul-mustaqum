@@ -10,6 +10,8 @@
 <div class="card" style="margin-top:14px"><h3>✏️ তথ্য সম্পাদনা</h3><div class="fg">
 <label>নাম<input id="in" maxlength="100"></label><label>মোবাইল (লগইন নম্বর)<input id="ip" maxlength="25"></label><label>ঠিকানা<input id="ia" maxlength="150"></label><label>পেশা<input id="io" maxlength="100"></label></div><button id="sv" style="margin-top:8px">সংরক্ষণ করুন</button></div>
 <div class="card"><h3>💰 জমা লিখুন</h3><div class="bar"><input type="month" id="pm"><input type="number" id="pa" min="1" placeholder="পরিমাণ"><button id="padd">জমা লিখুন</button></div></div>
+<div class="card"><h3>⚠️ বকেয়া যোগ করুন (বিগত মাস)</h3><div class="bar"><input type="month" id="dm"><input type="number" id="da" min="1" placeholder="পরিমাণ"><input id="dn" placeholder="নোট (ঐচ্ছিক)" maxlength="150"><button id="dadd" class="red">বকেয়া যোগ করুন</button></div></div>
+<h3 style="margin:18px 0 8px">বকেয়ার তালিকা</h3><div class="dash sm" id="dl"></div>
 <h3 style="margin:18px 0 8px">চাঁদার ইতিহাস</h3><div class="dash sm" id="ph"></div>
 </div></main>
 <script>
@@ -27,15 +29,16 @@ const MID=new URLSearchParams(location.search).get('id')||'';let M=null;
 function box(parent,cls,icon,val,label,fn){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';
  d.children[0].textContent=icon;d.children[1].textContent=val;d.children[2].textContent=label;if(fn){d.style.cursor='pointer';d.onclick=fn;}parent.appendChild(d);return d;}
 function phoneIntl(p){const d=String(p||'').replace(/\D/g,'');if(d.startsWith('880'))return d;if(d.startsWith('0'))return '880'+d.slice(1);return d;}
+async function getDues(){try{const r=await fetch(URL_+'/rest/v1/dues?select=*&member_id=eq.'+MID+'&order=month.desc',{headers:{apikey:KEY,Authorization:'Bearer '+token}});return r.ok?await r.json():[];}catch(e){return [];}}
 async function load(){
  if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
  const rows=await api('members?select=*&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
- const ps=await api('payments?select=*&member_id=eq.'+MID+'&order=month.desc')||[];const ok=M.status==='approved';
+ const ps=await api('payments?select=*&member_id=eq.'+MID+'&order=month.desc')||[];const dues=await getDues();const ok=M.status==='approved';
  $('av').textContent=(M.name||'?').trim().charAt(0);$('nm').textContent=M.name;$('bd').textContent=ok?'সক্রিয় সদস্য':'অনুমোদনের অপেক্ষায়';$('bd').className='badge '+(ok?'ok':'wait');
  $('in').value=M.name||'';$('ip').value=M.phone||'';$('ia').value=M.area||'';$('io').value=M.occupation||'';$('pa').value=ok?M.monthly_amount:'';
  const st=$('stats');st.innerHTML='';
  box(st,'blue','💰',ok?'৳ '+bn(M.monthly_amount):'–','মাসিক চাঁদা');box(st,'green','📅',ok?(ps.some(p=>p.month===cur())?'জমা ✓':'বাকি'):'–','এই মাসে');
- box(st,'purple','🧾','৳ '+bn(sum(ps)),'মোট জমা');box(st,'cyan','🗓️',bn(ps.length),'জমার মাস');
+ box(st,'purple','🧾','৳ '+bn(sum(ps)),'মোট জমা');box(st,'cyan','🗓️',bn(ps.length),'জমার মাস');box(st,'red','⚠️','৳ '+bn(sum(dues.filter(x=>!x.paid))),'মোট বকেয়া');
  const inf=$('info');inf.innerHTML='';
  box(inf,'blue','📞',M.phone||'–','ফোন');box(inf,'green','📍',M.area||'–','ঠিকানা');box(inf,'amber','💼',M.occupation||'–','পেশা');
  box(inf,'purple','📆',dfmt(M.joined_on||M.created_at),'যোগদান');box(inf,'pink','🔐',M.pass_hash?'চালু':'নেই','সদস্যের লগইন');
@@ -48,6 +51,15 @@ async function load(){
   const j=await api('rpc/admin_reset_member_password',{method:'POST',body:JSON.stringify({p_member:MID,p_password:v})});
   alert(j&&j.ok?'পাসওয়ার্ড বসানো হয়েছে। সদস্যকে জানান এবং প্রোফাইলে গিয়ে বদলে নিতে বলুন।':'হয়নি: '+((j&&j.error)||'SQL সেটআপ চালানো হয়েছে কি না দেখুন'));load();});
  if(ok&&M.phone)box(ac,'cyan','📲','রিমাইন্ডার পাঠান','WhatsApp',()=>window.open('https://wa.me/'+phoneIntl(M.phone)+'?text='+encodeURIComponent('আসসালামু আলাইকুম '+M.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(M.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল। জাযাকাল্লাহ।'),'_blank'));
+ const dl=$('dl');dl.innerHTML='';
+ dues.forEach(x=>{const d=box(dl,x.paid?'green':'red',x.paid?'✓':'⚠️','৳ '+bn(x.amount),x.month+(x.paid?' • পরিশোধিত':' • বকেয়া')+(x.note?' • '+x.note:''));
+  if(!x.paid){const b1=document.createElement('button');b1.textContent='জমা হয়েছে';b1.style.cssText='margin-top:8px';
+   b1.onclick=async()=>{if(!confirm(x.month+' মাসের ৳ '+x.amount+' জমা হিসেবে লিখবেন?'))return;
+    await api('payments',{method:'POST',body:JSON.stringify({member_id:MID,month:x.month,amount:x.amount})});
+    await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:today()})});load();};d.appendChild(b1);}
+  const b2=document.createElement('button');b2.className='alt red';b2.textContent='মুছুন';b2.style.cssText='margin-top:8px';
+  b2.onclick=async()=>{if(confirm('এই বকেয়া এন্ট্রি মুছবেন?')){await api('dues?id=eq.'+x.id,{method:'DELETE'});load();}};d.appendChild(b2);});
+ if(!dues.length)dl.textContent='কোনো বকেয়া নেই।';
  const ph=$('ph');ph.innerHTML='';
  ps.forEach(p=>{const d=box(ph,'green','✓','৳ '+bn(p.amount),p.month);const x=document.createElement('button');x.className='alt red';x.textContent='বাতিল';x.style.marginTop='8px';
   x.onclick=async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}};d.appendChild(x);});
@@ -57,6 +69,8 @@ $('sv').onclick=async()=>{if(!$('in').value.trim()){alert('নাম দিন�
  await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({name:$('in').value.trim(),phone:$('ip').value.trim(),area:$('ia').value.trim(),occupation:$('io').value.trim()})});load();};
 $('padd').onclick=async()=>{const m=$('pm').value,a=Number($('pa').value);if(!m||!(a>0)){alert('মাস ও পরিমাণ দিন।');return;}
  await api('payments',{method:'POST',body:JSON.stringify({member_id:MID,month:m,amount:a})});load();};
-$('pm').value=cur();
+$('dadd').onclick=async()=>{const mo=$('dm').value,a=Number($('da').value);if(!mo||!(a>0)){alert('মাস ও পরিমাণ দিন।');return;}
+ await api('dues',{method:'POST',body:JSON.stringify({member_id:MID,month:mo,amount:a,note:$('dn').value.trim()||null})});$('da').value=$('dn').value='';load();};
+$('pm').value=cur();$('dm').value=new Date(new Date().getFullYear(),new Date().getMonth()-1,1).toISOString().slice(0,7);
 if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
 </script></body></html>

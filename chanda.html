@@ -14,8 +14,8 @@
 <div id="app" style="display:none">
 <div class="card" id="pendCard" style="display:none"><b>অনুমোদনের অপেক্ষায় নতুন সদস্য</b><div id="pend"></div></div>
 <div class="card"><label>মাস বেছে নিন: <input type="month" id="mon"></label></div>
-<div class="card sum"><div>সদস্য<b id="s1">০</b></div><div>প্রত্যাশিত<b id="s2">০</b></div><div>জমা হয়েছে<b id="s3">০</b></div><div>বাকি সদস্য<b id="s4">০</b></div></div>
-<div class="card wrap"><table><thead><tr><th>নাম</th><th>ফোন</th><th>মাসিক পরিমাণ</th><th>এই মাসে</th><th>কাজ</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="card sum"><div>সদস্য<b id="s1">০</b></div><div>প্রত্যাশিত<b id="s2">০</b></div><div>জমা হয়েছে<b id="s3">০</b></div><div>বাকি সদস্য<b id="s4">০</b></div><div>মোট বকেয়া<b id="s5">০</b></div></div>
+<div class="card wrap"><table><thead><tr><th>নাম</th><th>ফোন</th><th>মাসিক পরিমাণ</th><th>এই মাসে</th><th>বকেয়া</th><th>কাজ</th></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="card"><b>নতুন সদস্য যোগ করুন</b><br>
 <input id="n" placeholder="নাম"><input id="p" placeholder="ফোন" inputmode="tel"><input id="a" placeholder="মাসিক টাকা" type="number" min="1">
 <button id="add">যোগ করুন</button></div>
@@ -34,7 +34,11 @@ async function api(path,opt={}){
 }
 function curMonth(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 function phoneIntl(p){const d=String(p||'').replace(/\D/g,'');if(d.startsWith('880'))return d;if(d.startsWith('0'))return '880'+d.slice(1);return d;}
-function remMsg(m){return 'আসসালামু আলাইকুম '+m.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(m.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল। জাযাকাল্লাহ।';}
+let DUES={};
+function prevMonth(){const d=new Date(new Date().getFullYear(),new Date().getMonth()-1,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+async function loadDues(){DUES={};try{const r=await fetch(URL_+'/rest/v1/dues?select=*&paid=eq.false&order=month',{headers:{apikey:KEY,Authorization:'Bearer '+token}});
+ if(r.ok)(await r.json()).forEach(x=>{(DUES[x.member_id]=DUES[x.member_id]||[]).push(x);});}catch(e){}}
+function remMsg(m){const dl=DUES[m.id]||[];const t=dl.reduce((s,x)=>s+Number(x.amount),0);return 'আসসালামু আলাইকুম '+m.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(m.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল।'+(t?' আপনার বিগত '+bn(dl.length)+' মাসের বকেয়া ৳ '+bn(t)+' আছে, দয়া করে পরিশোধ করুন।':'')+' জাযাকাল্লাহ।';}
 async function loadPending(){
  const ps=await api('members?select=*&status=eq.pending&order=created_at')||[];
  $('pendCard').style.display=ps.length?'block':'none';const box=$('pend');box.innerHTML='';
@@ -50,8 +54,9 @@ async function load(){
  const ms=await api('members?select=*&active=eq.true&status=eq.approved&order=name')||[];
  const ps=await api('payments?select=*&month=eq.'+mon)||[];
  const pm={};ps.forEach(p=>pm[p.member_id]=p);
+ await loadDues();
  const cur=curMonth(),late=new Date().getDate()>10;
- let exp=0,got=0,pend=0;const tb=$('tb');tb.innerHTML='';
+ let exp=0,got=0,pend=0,dueTotal=0;const tb=$('tb');tb.innerHTML='';
  ms.forEach(m=>{
   exp+=Number(m.monthly_amount);const p=pm[m.id];const tr=document.createElement('tr');
   const cell=t=>{const td=document.createElement('td');td.textContent=t;tr.appendChild(td);return td;};
@@ -62,19 +67,25 @@ async function load(){
    if(mon<cur){st.textContent='বাকি';st.className='late';}
    else if(mon===cur){st.textContent=late?'দেরি (১০ তারিখ পার)':'বাকি';st.className=late?'late':'due';}
    else st.textContent='—';}
+  const dl=DUES[m.id]||[];const dt=dl.reduce((s,x)=>s+Number(x.amount),0);dueTotal+=dt;
+  const du=cell(dl.length?'৳ '+bn(dt)+' ('+bn(dl.length)+' মাস)':'—');if(dl.length)du.className='late';
   const ac=cell('');
   const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;x.style.marginRight='4px';ac.appendChild(x);};
   if(p)b('বাতিল','alt red',async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}});
   else b('জমা হয়েছে','',async()=>{const v=prompt('জমার পরিমাণ',m.monthly_amount);if(v===null)return;
    await api('payments',{method:'POST',body:JSON.stringify({member_id:m.id,month:mon,amount:Number(v)})});load();});
   if(!p&&m.phone&&mon<=cur){b('📲 WhatsApp','alt',()=>window.open('https://wa.me/'+phoneIntl(m.phone)+'?text='+encodeURIComponent(remMsg(m)),'_blank'));b('✉️ SMS','alt',()=>{location.href='sms:+'+phoneIntl(m.phone)+'?body='+encodeURIComponent(remMsg(m));});}
+  b('➕ বকেয়া','alt',async()=>{const mo=prompt('কোন মাসের বকেয়া? (বছর-মাস, যেমন 2026-08)',prevMonth());if(!mo)return;
+   if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(mo.trim())){alert('মাস সঠিক ফরমেটে দিন, যেমন 2026-08');return;}
+   const v=prompt('ওই মাসের বকেয়ার পরিমাণ (টাকা)',m.monthly_amount);if(!v)return;
+   await api('dues',{method:'POST',body:JSON.stringify({member_id:m.id,month:mo.trim(),amount:Number(v)})});load();});
   b('পরিমাণ বদলান','alt',async()=>{const v=prompt('নতুন মাসিক পরিমাণ',m.monthly_amount);if(!v)return;
    await api('members?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({monthly_amount:Number(v)})});load();});
   b('সরান','alt red',async()=>{if(confirm(m.name+' কে তালিকা থেকে সরাবেন? (আগের হিসাব থাকবে)')){
    await api('members?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({active:false})});load();}});
   tb.appendChild(tr);
  });
- $('s1').textContent=bn(ms.length);$('s2').textContent='৳ '+bn(exp);$('s3').textContent='৳ '+bn(got);$('s4').textContent=bn(pend);
+ $('s1').textContent=bn(ms.length);$('s2').textContent='৳ '+bn(exp);$('s3').textContent='৳ '+bn(got);$('s4').textContent=bn(pend);$('s5').textContent='৳ '+bn(dueTotal);
 }
 $('add').onclick=async()=>{
  const n=$('n').value.trim(),a=Number($('a').value);
