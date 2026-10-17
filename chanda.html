@@ -34,10 +34,10 @@ async function api(path,opt={}){
 }
 function curMonth(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 function phoneIntl(p){const d=String(p||'').replace(/\D/g,'');if(d.startsWith('880'))return d;if(d.startsWith('0'))return '880'+d.slice(1);return d;}
-let DUES={};
+let DUES={},HIST={};
 function prevMonth(){const d=new Date(new Date().getFullYear(),new Date().getMonth()-1,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
-async function loadDues(){DUES={};try{const r=await fetch(URL_+'/rest/v1/dues?select=*&paid=eq.false&order=month',{headers:{apikey:KEY,Authorization:'Bearer '+token}});
- if(r.ok)(await r.json()).forEach(x=>{(DUES[x.member_id]=DUES[x.member_id]||[]).push(x);});}catch(e){}}
+async function loadDues(){DUES={};HIST={};try{const r=await fetch(URL_+'/rest/v1/dues?select=*&order=month',{headers:{apikey:KEY,Authorization:'Bearer '+token}});
+ if(r.ok)(await r.json()).forEach(x=>{if(x.paid)(HIST[x.member_id]=HIST[x.member_id]||[]).push(x);else(DUES[x.member_id]=DUES[x.member_id]||[]).push(x);});}catch(e){}}
 function remMsg(m){const dl=DUES[m.id]||[];const t=dl.reduce((s,x)=>s+Number(x.amount),0);return 'আসসালামু আলাইকুম '+m.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(m.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল।'+(t?' আপনার বিগত '+bn(dl.length)+' মাসের বকেয়া ৳ '+bn(t)+' আছে, দয়া করে পরিশোধ করুন।':'')+' জাযাকাল্লাহ।';}
 async function loadPending(){
  const ps=await api('members?select=*&status=eq.pending&order=created_at')||[];
@@ -84,6 +84,11 @@ async function load(){
     const bd=document.createElement('button');bd.className='alt red';bd.textContent='মুছুন';bd.style.cssText='margin:6px 0 0;padding:6px 12px;font-size:13px';
     bd.onclick=async()=>{if(confirm(x.month+' মাসের বকেয়া এন্ট্রি মুছবেন?')){await api('dues?id=eq.'+x.id,{method:'DELETE'});load();}};
     row.appendChild(bp);row.appendChild(bd);du.appendChild(row);});}
+  const hl=HIST[m.id]||[];
+  if(hl.length){if(!dl.length)du.textContent='';
+   hl.slice(-2).reverse().forEach(x=>{const r2=document.createElement('div');r2.style.cssText='margin:6px 0;padding:6px 8px;border:1px solid #14532d;border-radius:12px;background:#04200f;color:#86efac;font-size:13px';
+    r2.textContent='✓ '+x.month+' • ৳ '+bn(x.amount)+' পরিশোধিত'+(x.paid_on?' ('+new Date(x.paid_on).toLocaleDateString('bn-BD')+')':'');du.appendChild(r2);});}
+  if(dl.length||hl.length){const lk=document.createElement('a');lk.href='mdues.html?id='+m.id;lk.textContent='📊 বকেয়া ড্যাশবোর্ড'+(hl.length?' ('+bn(hl.length)+' পরিশোধিত)':'');lk.style.cssText='display:inline-block;margin-top:4px;font-size:13px';du.appendChild(lk);}
   const ac=cell('');
   const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;x.style.marginRight='4px';ac.appendChild(x);};
   if(p)b('বাতিল','alt red',async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}});

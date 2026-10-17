@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সদস্যের বকেয়া | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>সদস্যের বকেয়া</strong><a href="dues.html">← বকেয়া তালিকা</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="card prof"><div class="av" id="av"></div><div><h2 id="nm"></h2><a id="pl" href="#">পুরো প্রোফাইল দেখুন →</a></div></div>
+<div class="dash sm" id="stats"></div>
+<div class="card" style="margin-top:14px"><h3>⚠️ নতুন বকেয়া যোগ করুন</h3><div class="bar"><input type="month" id="dm"><input type="number" id="da" min="1" placeholder="পরিমাণ"><input id="dn" placeholder="নোট (ঐচ্ছিক)" maxlength="150"><button id="dadd" class="red">বকেয়া যোগ করুন</button></div></div>
+<h3 style="margin:18px 0 8px">বাকি বকেয়া</h3><div id="un"></div>
+<h3 style="margin:18px 0 8px">পরিশোধের ইতিহাস</h3><div id="pd"></div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStart(2,'0');};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function allDues(q){try{const r=await fetch(URL_+'/rest/v1/dues?select=*'+q,{headers:{apikey:KEY,Authorization:'Bearer '+token}});return r.ok?await r.json():[];}catch(e){return [];}}
+
+const MID=new URLSearchParams(location.search).get('id')||'';let M=null;
+function mk(p,cls,i,v,l){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=i;d.children[1].textContent=v;d.children[2].textContent=l;p.appendChild(d);}
+function entry(box,x,paid){const e=document.createElement('div');e.className='entry '+(paid?'paid':'due');
+ const l=document.createElement('div');const b=document.createElement('b');b.textContent=x.month+' মাস';const s=document.createElement('small');
+ s.textContent=paid?('✓ পরিশোধিত'+(x.paid_on?' • '+dfmt(x.paid_on):'')+(x.note?' • '+x.note:'')):('বকেয়া'+(x.note?' • '+x.note:''));
+ l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);
+ const r=document.createElement('div');r.style.textAlign='right';const a=document.createElement('div');a.className='amt'+(paid?' in':'');a.textContent='৳ '+bn(x.amount);r.appendChild(a);
+ if(!paid){const bp=document.createElement('button');bp.textContent='জমা হয়েছে';bp.onclick=()=>markPaid(x);r.appendChild(bp);}
+ const bd=document.createElement('button');bd.className='alt red';bd.textContent='মুছুন';
+ bd.onclick=async()=>{if(confirm(paid?'ইতিহাস থেকে এই এন্ট্রি মুছে যাবে। নিশ্চিত?':'এই বকেয়া মুছবেন?')){await api('dues?id=eq.'+x.id,{method:'DELETE'});load();}};r.appendChild(bd);
+ e.appendChild(l);e.appendChild(r);box.appendChild(e);}
+async function markPaid(x){
+ const ex=await api('payments?select=id&member_id=eq.'+MID+'&month=eq.'+x.month)||[];
+ if(ex.length){if(!confirm(x.month+' মাসের জমা আগেই লেখা আছে। শুধু বকেয়াটা পরিশোধিত হিসেবে চিহ্নিত করবেন?'))return;}
+ else{const v=prompt(x.month+' মাসের বকেয়া জমার পরিমাণ (টাকা)',x.amount);if(v===null)return;
+  await api('payments',{method:'POST',body:JSON.stringify({member_id:MID,month:x.month,amount:Number(v)})});}
+ await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:today()})});load();}
+async function load(){
+ if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
+ const rows=await api('members?select=id,name,phone,monthly_amount&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
+ const D=await allDues('&member_id=eq.'+MID+'&order=month.desc');const un=D.filter(x=>!x.paid),pd=D.filter(x=>x.paid);
+ $('av').textContent=(M.name||'?').trim().charAt(0);$('nm').textContent=M.name;$('pl').href='mprofile.html?id='+MID;
+ const st=$('stats');st.innerHTML='';mk(st,'red','💳','৳ '+bn(sum(un)),'মোট বাকি');mk(st,'amber','🗓️',bn(un.length),'বাকি মাস');mk(st,'green','✅','৳ '+bn(sum(pd)),'পরিশোধিত');mk(st,'blue','🧾',bn(D.length),'মোট এন্ট্রি');
+ const a=$('un'),b=$('pd');a.innerHTML='';b.innerHTML='';
+ un.forEach(x=>entry(a,x,false));pd.forEach(x=>entry(b,x,true));
+ if(!un.length)a.textContent='কোনো বাকি বকেয়া নেই 🎉';if(!pd.length)b.textContent='এখনও কোনো বকেয়া পরিশোধ হয়নি।';
+ $('da').value=$('da').value||M.monthly_amount||'';}
+$('dadd').onclick=async()=>{const mo=$('dm').value,a=Number($('da').value);if(!mo||!(a>0)){alert('মাস ও পরিমাণ দিন।');return;}
+ await api('dues',{method:'POST',body:JSON.stringify({member_id:MID,month:mo,amount:a,note:$('dn').value.trim()||null})});$('dn').value='';load();};
+$('dm').value=new Date(new Date().getFullYear(),new Date().getMonth()-1,1).toISOString().slice(0,7);
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>

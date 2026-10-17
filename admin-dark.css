@@ -90,3 +90,7 @@ button.red{background:#dc2626}
 header strong::before{content:"";display:inline-block;width:44px;height:44px;margin-right:10px;vertical-align:middle;background:url(logo.png) center/contain no-repeat;border-radius:50%}
 
 .dcard.red{background:#2a0a0a;border-color:#b91c1c}.dcard.red b{color:#f87171}
+
+.entry.due{border-color:#7f1d1d;background:#1a0808}
+.entry.paid{border-color:#14532d;background:#04200f}
+.entry button{display:block;margin:6px 0 0 auto;padding:6px 12px;font-size:13px}

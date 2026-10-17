@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>বকেয়া ড্যাশবোর্ড | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>বকেয়া ড্যাশবোর্ড</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="dash" id="top"></div>
+<div class="bar" style="margin-top:14px"><button id="f_due" class="on">বাকি আছে</button><button id="f_all" class="alt">সব (ইতিহাসসহ)</button><input id="q" placeholder="নাম বা ফোন খুঁজুন" style="flex:1;min-width:160px"></div>
+<div class="dash" id="grid"></div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStart(2,'0');};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function allDues(q){try{const r=await fetch(URL_+'/rest/v1/dues?select=*'+q,{headers:{apikey:KEY,Authorization:'Bearer '+token}});return r.ok?await r.json():[];}catch(e){return [];}}
+
+let ML=[],DL=[],F='due';
+function mk(p,cls,i,v,l){const d=document.createElement('div');d.className='dcard '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=i;d.children[1].textContent=v;d.children[2].textContent=l;p.appendChild(d);}
+function draw(){const q=$('q').value.trim().toLowerCase();$('f_due').className=F==='due'?'on':'alt';$('f_all').className=F==='all'?'on':'alt';
+ const by={};DL.forEach(x=>{(by[x.member_id]=by[x.member_id]||{un:[],pd:[]})[x.paid?'pd':'un'].push(x);});
+ const t=$('top');t.innerHTML='';const un=DL.filter(x=>!x.paid),pd=DL.filter(x=>x.paid);
+ mk(t,'red','💳','৳ '+bn(sum(un)),'মোট বাকি বকেয়া');mk(t,'amber','👥',bn(new Set(un.map(x=>x.member_id)).size),'বকেয়া আছে এমন সদস্য');mk(t,'green','✅','৳ '+bn(sum(pd)),'পরিশোধিত বকেয়া');
+ const g=$('grid');g.innerHTML='';let n=0;
+ ML.forEach(m=>{const e=by[m.id];if(!e)return;if(F==='due'&&!e.un.length)return;
+  if(q&&!(m.name||'').toLowerCase().includes(q)&&!(m.phone||'').includes(q))return;n++;
+  const a=document.createElement('a');a.className='dcard mcard '+(e.un.length?'red':'green');a.href='mdues.html?id='+m.id;
+  const av=document.createElement('div');av.className='av';av.textContent=(m.name||'?').trim().charAt(0);
+  const nm=document.createElement('b');nm.textContent=m.name;nm.style.fontSize='20px';
+  const ph=document.createElement('small');ph.textContent='📞 '+(m.phone||'');
+  const l1=document.createElement('small');l1.textContent=e.un.length?'বাকি ৳ '+bn(sum(e.un))+' • '+bn(e.un.length)+' মাস':'কোনো বাকি নেই ✓';
+  const l2=document.createElement('small');l2.textContent='পরিশোধিত ৳ '+bn(sum(e.pd))+' • '+bn(e.pd.length)+' মাস';
+  [av,nm,ph,l1,l2].forEach(x=>a.appendChild(x));g.appendChild(a);});
+ if(!n)g.textContent=F==='due'?'কারও বকেয়া নেই 🎉':'কোনো তথ্য নেই।';}
+async function load(){ML=await api('members?select=id,name,phone&active=eq.true&order=name')||[];DL=await allDues('&order=month.desc');draw();}
+$('f_due').onclick=()=>{F='due';draw();};$('f_all').onclick=()=>{F='all';draw();};$('q').oninput=draw;
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>

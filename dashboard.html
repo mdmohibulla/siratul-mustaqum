@@ -27,6 +27,7 @@
 <a class="tile purple" href="reports.html"><span>📊</span><b>হিসাব ও রিপোর্ট</b><small>অনুদান ও ব্যয়ের হিসাব</small></a>
 <a class="tile amber" href="about.html"><span>ℹ️</span><b>আমাদের পরিচয়</b><small>লক্ষ্য ও মূল্যবোধ</small></a>
 <a class="tile pink" href="donate.html"><span>💚</span><b>অনুদান</b><small>সহযোগিতার নম্বর</small></a>
+<a class="tile red" href="my-dues.html"><span>💳</span><b>আমার বকেয়া</b><small>বকেয়া ও ইতিহাস</small></a>
 <a class="tile cyan" href="profile.html"><span>👤</span><b>আমার প্রোফাইল</b><small>তথ্য ও পাসওয়ার্ড</small></a>
 </div></div>
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
@@ -60,7 +61,7 @@ function dueList(d){const L=(d.dues||[]).filter(x=>!x.paid);if(!L.length)return;
  const i=document.createElement('span');i.className='i';i.textContent='💳';
  const c=document.createElement('div');c.className='t';c.textContent='আপনার বিগত বকেয়া চাঁদা আছে — মোট ৳ '+bn(t);
  L.forEach(x=>{const e=document.createElement('div');e.style.cssText='font-weight:500;margin-top:6px;font-size:16px';e.textContent='• '+x.month+' মাস: ৳ '+bn(x.amount)+(x.note?' ('+x.note+')':'');c.appendChild(e);});
- const a=document.createElement('a');a.href='donate.html';a.className='button button-primary';a.textContent='💚 কীভাবে দেবেন';a.style.marginTop='10px';a.style.display='inline-block';c.appendChild(a);
+ const a=document.createElement('a');a.href='donate.html';a.className='button button-primary';a.textContent='💚 কীভাবে দেবেন';a.style.marginTop='10px';a.style.display='inline-block';c.appendChild(a);const h=document.createElement('a');h.href='my-dues.html';h.className='button button-outline';h.textContent='📜 ইতিহাস';h.style.cssText='margin-left:8px;display:inline-block;margin-top:10px';c.appendChild(h);
  r.appendChild(i);r.appendChild(c);box.appendChild(r);}
 (async()=>{let d=null;try{const r=await fetch(URL_+'/rest/v1/rpc/member_me',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:tk})});d=r.ok?await r.json():null;}catch(e){}
  if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}

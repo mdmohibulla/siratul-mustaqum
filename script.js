@@ -18,7 +18,7 @@ document.querySelectorAll('.brand-mark').forEach(el => {
 });
 const MT = sessionStorage.getItem('mtk');
 const PAGE = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
-const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile'];
+const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile', 'my-dues'];
 if (PRIVATE_PAGES.includes(PAGE) && !MT) { document.body.style.display = 'none'; location.replace('member-login.html'); }
 if (PAGE === 'index' && MT) location.replace('dashboard.html');
 if (nav) {

@@ -128,3 +128,9 @@ footer .brand-logo{height:72px;width:72px}
 /* পার্সোনাল নম্বরের ট্যাগ */
 .pay-type{display:inline-block;margin:10px 0 4px;padding:5px 14px;border-radius:999px;background:rgba(251,191,36,.14);border:1px solid #b45309;color:#fbbf24;font-weight:700;font-size:15px}
 .pay-how{display:block;margin-bottom:8px;color:#dbe4f0!important}
+
+/* বকেয়া কার্ড */
+.stat.red{background:#2a0a0a;border-color:#b91c1c}.stat.red b{color:#f87171}
+.tile.red{background:#2a0a0a!important;border-color:#b91c1c!important}.tile.red b{color:#f87171!important}
+.entry.due{border-color:#7f1d1d;background:#1a0808}
+.entry.paid{border-color:#14532d;background:#04200f}
