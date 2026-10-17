@@ -87,6 +87,6 @@ button.red{background:#dc2626}
 .lb img{max-width:96vw;max-height:92vh;border-radius:8px}
 
 /* লোগো */
-header strong::before{content:"";display:inline-block;width:52px;height:40px;margin-right:10px;vertical-align:middle;background:url(logo.png) center/contain no-repeat}
+header strong::before{content:"";display:inline-block;width:44px;height:44px;margin-right:10px;vertical-align:middle;background:url(logo.png) center/contain no-repeat;border-radius:50%}
 
 .dcard.red{background:#2a0a0a;border-color:#b91c1c}.dcard.red b{color:#f87171}
