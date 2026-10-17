@@ -68,7 +68,22 @@ async function load(){
    else if(mon===cur){st.textContent=late?'দেরি (১০ তারিখ পার)':'বাকি';st.className=late?'late':'due';}
    else st.textContent='—';}
   const dl=DUES[m.id]||[];const dt=dl.reduce((s,x)=>s+Number(x.amount),0);dueTotal+=dt;
-  const du=cell(dl.length?'৳ '+bn(dt)+' ('+bn(dl.length)+' মাস)':'—');if(dl.length)du.className='late';
+  const du=cell('');
+  if(!dl.length){du.textContent='—';}
+  else{const tt=document.createElement('div');tt.className='late';tt.textContent='মোট ৳ '+bn(dt);du.appendChild(tt);
+   dl.forEach(x=>{const row=document.createElement('div');row.style.cssText='margin:6px 0;padding:8px;border:1px solid #7f1d1d;border-radius:12px;background:#1a0808';
+    const l=document.createElement('div');l.style.cssText='color:#fecaca;font-weight:600';l.textContent=x.month+' • ৳ '+bn(x.amount)+(x.note?' • '+x.note:'');row.appendChild(l);
+    const bp=document.createElement('button');bp.textContent='জমা হয়েছে';bp.style.cssText='margin:6px 6px 0 0;padding:6px 12px;font-size:13px';
+    bp.onclick=async()=>{
+     const ex=await api('payments?select=id&member_id=eq.'+m.id+'&month=eq.'+x.month)||[];
+     if(ex.length){if(!confirm(x.month+' মাসের জমা আগেই লেখা আছে। শুধু বকেয়াটা পরিশোধিত হিসেবে চিহ্নিত করবেন?'))return;}
+     else{const v=prompt(x.month+' মাসের বকেয়া জমার পরিমাণ (টাকা)',x.amount);if(v===null)return;
+      await api('payments',{method:'POST',body:JSON.stringify({member_id:m.id,month:x.month,amount:Number(v)})});}
+     const t=new Date();const pd=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+     await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:pd})});load();};
+    const bd=document.createElement('button');bd.className='alt red';bd.textContent='মুছুন';bd.style.cssText='margin:6px 0 0;padding:6px 12px;font-size:13px';
+    bd.onclick=async()=>{if(confirm(x.month+' মাসের বকেয়া এন্ট্রি মুছবেন?')){await api('dues?id=eq.'+x.id,{method:'DELETE'});load();}};
+    row.appendChild(bp);row.appendChild(bd);du.appendChild(row);});}
   const ac=cell('');
   const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;x.style.marginRight='4px';ac.appendChild(x);};
   if(p)b('বাতিল','alt red',async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}});

@@ -55,7 +55,9 @@ async function load(){
  dues.forEach(x=>{const d=box(dl,x.paid?'green':'red',x.paid?'✓':'⚠️','৳ '+bn(x.amount),x.month+(x.paid?' • পরিশোধিত':' • বকেয়া')+(x.note?' • '+x.note:''));
   if(!x.paid){const b1=document.createElement('button');b1.textContent='জমা হয়েছে';b1.style.cssText='margin-top:8px';
    b1.onclick=async()=>{if(!confirm(x.month+' মাসের ৳ '+x.amount+' জমা হিসেবে লিখবেন?'))return;
-    await api('payments',{method:'POST',body:JSON.stringify({member_id:MID,month:x.month,amount:x.amount})});
+    const ex=await api('payments?select=id&member_id=eq.'+MID+'&month=eq.'+x.month)||[];
+    if(ex.length){if(!confirm(x.month+' মাসের জমা আগেই লেখা আছে। শুধু বকেয়াটা পরিশোধিত হিসেবে চিহ্নিত করবেন?'))return;}
+    else await api('payments',{method:'POST',body:JSON.stringify({member_id:MID,month:x.month,amount:x.amount})});
     await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:today()})});load();};d.appendChild(b1);}
   const b2=document.createElement('button');b2.className='alt red';b2.textContent='মুছুন';b2.style.cssText='margin-top:8px';
   b2.onclick=async()=>{if(confirm('এই বকেয়া এন্ট্রি মুছবেন?')){await api('dues?id=eq.'+x.id,{method:'DELETE'});load();}};d.appendChild(b2);});
