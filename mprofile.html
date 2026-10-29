@@ -6,7 +6,7 @@
 <div class="card prof"><div class="av" id="av"></div><div><h2 id="nm"></h2><span id="bd" class="badge"></span></div></div>
 <div class="dash sm" id="stats"></div>
 <div class="dash sm" id="info" style="margin-top:14px"></div>
-<div class="dash sm" id="act" style="margin-top:14px"></div>
+<div class="dash sm" id="act" style="margin-top:14px"></div><input type="file" id="pf" accept="image/*" style="display:none">
 <div class="card" style="margin-top:14px"><h3>✏️ তথ্য সম্পাদনা</h3><div class="fg">
 <label>নাম<input id="in" maxlength="100"></label><label>মোবাইল (লগইন নম্বর)<input id="ip" maxlength="25"></label><label>ঠিকানা<input id="ia" maxlength="150"></label><label>পেশা<input id="io" maxlength="100"></label></div><button id="sv" style="margin-top:8px">সংরক্ষণ করুন</button></div>
 <div class="card"><h3>💰 জমা লিখুন</h3><div class="bar"><input type="month" id="pm"><input type="number" id="pa" min="1" placeholder="পরিমাণ"><button id="padd">জমা লিখুন</button></div></div>
@@ -34,7 +34,7 @@ async function load(){
  if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
  const rows=await api('members?select=*&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
  const ps=await api('payments?select=*&member_id=eq.'+MID+'&order=month.desc')||[];const dues=await getDues();const ok=M.status==='approved';
- $('av').textContent=(M.name||'?').trim().charAt(0);$('nm').textContent=M.name;$('bd').textContent=ok?'সক্রিয় সদস্য':'অনুমোদনের অপেক্ষায়';$('bd').className='badge '+(ok?'ok':'wait');
+ $('av').textContent=M.photo?'':(M.name||'?').trim().charAt(0);$('av').style.backgroundImage=M.photo?'url("'+M.photo+'")':'';$('nm').textContent=M.name;$('bd').textContent=ok?'সক্রিয় সদস্য':'অনুমোদনের অপেক্ষায়';$('bd').className='badge '+(ok?'ok':'wait');
  $('in').value=M.name||'';$('ip').value=M.phone||'';$('ia').value=M.area||'';$('io').value=M.occupation||'';$('pa').value=ok?M.monthly_amount:'';
  const st=$('stats');st.innerHTML='';
  box(st,'blue','💰',ok?'৳ '+bn(M.monthly_amount):'–','মাসিক চাঁদা');box(st,'green','📅',ok?(ps.some(p=>p.month===cur())?'জমা ✓':'বাকি'):'–','এই মাসে');
@@ -51,6 +51,8 @@ async function load(){
   const j=await api('rpc/admin_reset_member_password',{method:'POST',body:JSON.stringify({p_member:MID,p_password:v})});
   alert(j&&j.ok?'পাসওয়ার্ড বসানো হয়েছে। সদস্যকে জানান এবং প্রোফাইলে গিয়ে বদলে নিতে বলুন।':'হয়নি: '+((j&&j.error)||'SQL সেটআপ চালানো হয়েছে কি না দেখুন'));load();});
  if(ok&&M.phone)box(ac,'cyan','📲','রিমাইন্ডার পাঠান','WhatsApp',()=>window.open('https://wa.me/'+phoneIntl(M.phone)+'?text='+encodeURIComponent('আসসালামু আলাইকুম '+M.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(M.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল। জাযাকাল্লাহ।'),'_blank'));
+ box(ac,'purple','📷','ছবি আপলোড','প্রোফাইল ছবি',()=>$('pf').click());
+ box(ac,'cyan','📄','PDF রিপোর্ট','সব তথ্য ডাউনলোড',()=>window.open('member-report.html?id='+MID,'_blank'));
  const dl=$('dl');dl.innerHTML='';
  dues.forEach(x=>{const d=box(dl,x.paid?'green':'red',x.paid?'✓':'⚠️','৳ '+bn(x.amount),x.month+(x.paid?' • পরিশোধিত':' • বকেয়া')+(x.note?' • '+x.note:''));
   if(!x.paid){const b1=document.createElement('button');b1.textContent='জমা হয়েছে';b1.style.cssText='margin-top:8px';
@@ -67,6 +69,8 @@ async function load(){
   x.onclick=async()=>{if(confirm('এই জমা বাতিল করবেন?')){await api('payments?id=eq.'+p.id,{method:'DELETE'});load();}};d.appendChild(x);});
  if(!ps.length)ph.textContent='এখনও কোনো জমা নেই।';
 }
+function squarePhoto(file,size){size=size||200;return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;const c=document.createElement('canvas');c.width=c.height=size;c.getContext('2d').drawImage(img,sx,sy,s,s,0,0,size,size);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.8));};img.onerror=()=>rej(new Error('ছবি পড়া যায়নি'));img.src=u;});}
+$('pf').onchange=async()=>{const f=$('pf').files[0];if(!f)return;try{const url=await squarePhoto(f);await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({photo:url})});load();}catch(e){if(e&&e.message)alert(e.message);}$('pf').value='';};
 $('sv').onclick=async()=>{if(!$('in').value.trim()){alert('নাম দিন।');return;}
  await api('members?id=eq.'+MID,{method:'PATCH',body:JSON.stringify({name:$('in').value.trim(),phone:$('ip').value.trim(),area:$('ia').value.trim(),occupation:$('io').value.trim()})});load();};
 $('padd').onclick=async()=>{const m=$('pm').value,a=Number($('pa').value);if(!m||!(a>0)){alert('মাস ও পরিমাণ দিন।');return;}

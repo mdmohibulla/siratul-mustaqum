@@ -21,14 +21,14 @@ function draw(){const q=$('q').value.trim().toLowerCase(),g=$('grid');g.innerHTM
  ['all','ok','pending'].forEach(k=>{$('f_'+k).className=(F===k)?'on':'alt';});
  const L=rows.filter(m=>(F==='all'||(F==='ok'&&m.status==='approved')||(F==='pending'&&m.status==='pending'))&&(!q||(m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q)));
  L.forEach(m=>{const ok=m.status==='approved';const a=document.createElement('a');a.className='dcard mcard '+(ok?'green':'amber');a.href='mprofile.html?id='+m.id;
-  const av=document.createElement('div');av.className='av';av.textContent=(m.name||'?').trim().charAt(0);
+  let av;if(m.photo){av=document.createElement('img');av.src=m.photo;av.alt='';av.className='av';}else{av=document.createElement('div');av.className='av';av.textContent=(m.name||'?').trim().charAt(0);}
   const n=document.createElement('b');n.textContent=m.name;n.style.fontSize='20px';
   const p=document.createElement('small');p.textContent='📞 '+(m.phone||'');const ar=document.createElement('small');ar.textContent='📍 '+(m.area||'—');
   const am=document.createElement('small');am.textContent=ok?'💰 ৳ '+bn(m.monthly_amount)+' / মাস':'অনুমোদনের অপেক্ষায়';
   const bd=document.createElement('span');bd.className='badge '+(ok?'ok':'wait');bd.style.display='inline-block';bd.style.fontSize='13px';bd.textContent=ok?'সক্রিয় সদস্য':'অপেক্ষায়';
   [av,n,p,ar,am,bd].forEach(x=>a.appendChild(x));g.appendChild(a);});
  if(!L.length)g.textContent='কেউ নেই।';}
-async function load(){rows=await api('members?select=id,name,phone,area,monthly_amount,status&active=eq.true&order=created_at.desc')||[];draw();}
+async function load(){rows=await api('members?select=id,name,phone,area,monthly_amount,status,photo&active=eq.true&order=created_at.desc')||[];draw();}
 $('f_all').onclick=()=>{F='all';draw();};$('f_ok').onclick=()=>{F='ok';draw();};$('f_pending').onclick=()=>{F='pending';draw();};$('q').oninput=draw;
 if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
 </script></body></html>

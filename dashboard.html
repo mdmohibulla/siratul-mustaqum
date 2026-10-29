@@ -17,7 +17,7 @@
 </nav>
 </header>
 <main>
-<div class="wrapx"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p><div id="rem"></div><div id="duebox"></div>
+<div class="wrapx"><img id="gp" class="gp" alt="" style="display:none"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p><div id="rem"></div><div id="duebox"></div>
 <h4 class="lab">আমার চাঁদা</h4>
 <div class="stat-grid"><div class="stat blue"><b id="d1">–</b><small>মাসিক চাঁদা</small></div><div class="stat green"><b id="d2">–</b><small>এই মাসে</small></div><div class="stat purple"><b id="d3">–</b><small>মোট জমা</small></div></div>
 <h4 class="lab">সংগঠন</h4>
@@ -65,7 +65,7 @@ function dueList(d){const L=(d.dues||[]).filter(x=>!x.paid);if(!L.length)return;
  r.appendChild(i);r.appendChild(c);box.appendChild(r);}
 (async()=>{let d=null;try{const r=await fetch(URL_+'/rest/v1/rpc/member_me',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:tk})});d=r.ok?await r.json():null;}catch(e){}
  if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}
- const M=d.member,ok=M.status==='approved';$('gn').textContent=M.name;
+ const M=d.member,ok=M.status==='approved';$('gn').textContent=M.name;if(M.photo){$('gp').src=M.photo;$('gp').style.display='block';}
  $('gs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
  if(ok){const n=new Date(),cm=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
   $('d1').textContent='৳ '+bn(M.monthly_amount);$('d2').textContent=d.payments.some(p=>p.month===cm)?'জমা ✓':'বাকি';

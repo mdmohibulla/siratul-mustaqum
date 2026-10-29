@@ -18,6 +18,7 @@
 </header>
 <main>
 <section class="section" id="pf"><div class="section-heading"><span class="eyebrow dark">আমার প্রোফাইল</span><h2 id="hn">লোড হচ্ছে...</h2><p id="hs"></p></div>
+<div class="pavatar"><div class="av big" id="pav"></div><button class="button button-outline" id="pbtn" type="button">📷 ছবি বদলান</button><input type="file" id="pfile" accept="image/*" style="display:none"></div>
 <form class="application-form" id="pform"><div class="form-grid">
 <label>নাম<input id="pn" required maxlength="100"></label><label>ঠিকানা<input id="pa" maxlength="150"></label>
 <label>পেশা<input id="po" maxlength="100"></label><label>লগইন নম্বর<input id="pe" disabled></label><label>মাসিক চাঁদা<input id="pm" disabled></label></div>
@@ -28,11 +29,13 @@
 const rpc=async(n,b)=>{try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}};
 const tk=sessionStorage.getItem('mtk');if(!tk)location.href='member-login.html';
 const bn=n=>Number(n).toLocaleString('bn-BD');
+function setAv(M){const a=$('pav');if(M.photo){a.style.backgroundImage='url("'+M.photo+'")';a.textContent='';}else{a.style.backgroundImage='';a.textContent=(M.name||'?').trim().charAt(0);}}
+function squarePhoto(file,size){size=size||200;return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(img.width,img.height),sx=(img.width-s)/2,sy=(img.height-s)/2;const c=document.createElement('canvas');c.width=c.height=size;c.getContext('2d').drawImage(img,sx,sy,s,s,0,0,size,size);URL.revokeObjectURL(u);res(c.toDataURL('image/jpeg',0.8));};img.onerror=()=>rej(new Error('ছবি পড়া যায়নি'));img.src=u;});}
 async function load(){
  const d=await rpc('member_me',{p_token:tk});
  if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}
  const M=d.member,ok=M.status==='approved';
- $('hn').textContent=M.name;$('hs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
+ $('hn').textContent=M.name;setAv(M);$('hs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
  $('pn').value=M.name;$('pa').value=M.area||'';$('po').value=M.occupation||'';$('pe').value=M.phone||'';
  $('pm').value=ok?'৳ '+bn(M.monthly_amount):'অনুমোদনের পর জানা যাবে';
  if(ok){$('payb').style.display='';const tb=$('ptb');tb.innerHTML='';
@@ -43,6 +46,8 @@ $('pform').onsubmit=async e=>{e.preventDefault();const j=await rpc('member_updat
  $('pmsg').textContent=j&&j.ok?'সংরক্ষণ হয়েছে ✓':'সংরক্ষণ হয়নি।';if(j&&j.ok)load();};
 $('cp').onclick=async()=>{const v=$('np').value;if(v.length<8){$('cm').textContent='কমপক্ষে ৮ অক্ষর দিন।';return;}
  const j=await rpc('member_change_password',{p_token:tk,p_new:v});$('cm').textContent=j&&j.ok?'পাসওয়ার্ড বদলেছে ✓':'বদলানো যায়নি।';if(j&&j.ok)$('np').value='';};
+$('pbtn').onclick=()=>$('pfile').click();
+$('pfile').onchange=async()=>{const f=$('pfile').files[0];if(!f)return;try{const url=await squarePhoto(f);const j=await rpc('member_set_photo',{p_token:tk,p_photo:url});$('pmsg').textContent=j&&j.ok?'ছবি বদলেছে ✓':((j&&j.error)||'ছবি বদলানো যায়নি');if(j&&j.ok)load();}catch(e){$('pmsg').textContent=e.message||'ছবি বদলানো যায়নি';}$('pfile').value='';};
 $('lo').onclick=async()=>{await rpc('member_logout',{p_token:tk});sessionStorage.removeItem('mtk');location.href='member-login.html';};
 load();
 </script>

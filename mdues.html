@@ -3,7 +3,7 @@
 <header><strong>সদস্যের বকেয়া</strong><a href="dues.html">← বকেয়া তালিকা</a></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
-<div class="card prof"><div class="av" id="av"></div><div><h2 id="nm"></h2><a id="pl" href="#">পুরো প্রোফাইল দেখুন →</a></div></div>
+<div class="card prof"><div class="av" id="av"></div><div><h2 id="nm"></h2><a id="pl" href="#">পুরো প্রোফাইল দেখুন →</a> &nbsp; <a id="pdfl" href="#">📄 PDF রিপোর্ট</a></div></div>
 <div class="dash sm" id="stats"></div>
 <div class="card" style="margin-top:14px"><h3>⚠️ নতুন বকেয়া যোগ করুন</h3><div class="bar"><input type="month" id="dm"><input type="number" id="da" min="1" placeholder="পরিমাণ"><input id="dn" placeholder="নোট (ঐচ্ছিক)" maxlength="150"><button id="dadd" class="red">বকেয়া যোগ করুন</button></div></div>
 <h3 style="margin:18px 0 8px">বাকি বকেয়া</h3><div id="un"></div>
@@ -39,9 +39,9 @@ async function markPaid(x){
  await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:today()})});load();}
 async function load(){
  if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
- const rows=await api('members?select=id,name,phone,monthly_amount&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
+ const rows=await api('members?select=id,name,phone,monthly_amount,photo&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}
  const D=await allDues('&member_id=eq.'+MID+'&order=month.desc');const un=D.filter(x=>!x.paid),pd=D.filter(x=>x.paid);
- $('av').textContent=(M.name||'?').trim().charAt(0);$('nm').textContent=M.name;$('pl').href='mprofile.html?id='+MID;
+ $('av').textContent=M.photo?'':(M.name||'?').trim().charAt(0);$('av').style.backgroundImage=M.photo?'url("'+M.photo+'")':'';$('pdfl').href='member-report.html?id='+MID;$('pdfl').target='_blank';$('nm').textContent=M.name;$('pl').href='mprofile.html?id='+MID;
  const st=$('stats');st.innerHTML='';mk(st,'red','💳','৳ '+bn(sum(un)),'মোট বাকি');mk(st,'amber','🗓️',bn(un.length),'বাকি মাস');mk(st,'green','✅','৳ '+bn(sum(pd)),'পরিশোধিত');mk(st,'blue','🧾',bn(D.length),'মোট এন্ট্রি');
  const a=$('un'),b=$('pd');a.innerHTML='';b.innerHTML='';
  un.forEach(x=>entry(a,x,false));pd.forEach(x=>entry(b,x,true));

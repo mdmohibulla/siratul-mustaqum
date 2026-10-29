@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সদস্য রিপোর্ট | অ্যাডমিন</title>
+<style>
+body{margin:0;background:#e5e7eb;font-family:system-ui,"Noto Sans Bengali","Nirmala UI",sans-serif;color:#111827}
+.tool{max-width:794px;margin:14px auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:0 10px}
+.tool button{background:#15803d;color:#fff;border:0;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer}
+.tool button.alt{background:#fff;color:#15803d;border:1px solid #15803d}.tool a{color:#1d4ed8}
+.sheet{width:794px;max-width:100%;box-sizing:border-box;margin:0 auto 30px;background:#fff;padding:34px;color:#111827}
+.rh{display:flex;gap:16px;align-items:center;border-bottom:3px solid #15803d;padding-bottom:14px}
+.rh img{width:84px;height:84px;border-radius:50%}.rh h1{margin:0;font-size:24px;color:#14532d}.rh div div{font-size:17px;font-weight:700;margin-top:2px}.rh small{color:#4b5563}
+.pinfo{display:flex;gap:18px;margin-top:18px;align-items:flex-start}
+.rphoto{width:120px;height:120px;border-radius:14px;border:2px solid #15803d;background:#ecfdf5 center/cover;display:grid;place-items:center;font-size:48px;font-weight:800;color:#15803d;flex:none}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;flex:1}.g div{font-size:15px}.g b{color:#374151;font-weight:600}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.sg div{border:1px solid #d1d5db;border-radius:12px;padding:10px;text-align:center;background:#f9fafb}.sg b{display:block;font-size:20px}.sg small{color:#4b5563}
+.sg .r b{color:#b91c1c}.sg .g2 b{color:#15803d}.sg .b b{color:#1d4ed8}
+h3{margin:20px 0 6px;font-size:17px;color:#14532d;border-left:5px solid #15803d;padding-left:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border:1px solid #d1d5db;padding:6px 8px;text-align:left}th{background:#ecfdf5}
+.foot{margin-top:24px;font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:8px}
+@media print{body{background:#fff}.tool{display:none}.sheet{margin:0;padding:14px;width:auto}}
+</style></head><body>
+<div class="tool"><button id="dl">📄 PDF ডাউনলোড</button><button id="pr" class="alt">🖨️ প্রিন্ট</button><a id="bk" href="members.html">← ফিরে যান</a><span id="st"></span></div>
+<div class="sheet" id="report">
+<div class="rh"><img src="logo.png" alt=""><div><h1>সিরাতুল মুস্তাকিম ফাউন্ডেশন</h1><div>সদস্য রিপোর্ট</div><small id="gen"></small></div></div>
+<div class="pinfo"><div class="rphoto" id="rp"></div><div class="g" id="info"></div></div>
+<div class="sg" id="sum"></div>
+<h3>চাঁদা জমার ইতিহাস</h3><table><thead><tr><th>মাস</th><th>পরিমাণ</th></tr></thead><tbody id="pt"></tbody></table>
+<h3>বকেয়ার তালিকা</h3><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>অবস্থা</th><th>নোট</th></tr></thead><tbody id="dt"></tbody></table>
+<div class="foot">এই রিপোর্ট সংগঠনের অ্যাডমিন প্যানেল থেকে তৈরি করা হয়েছে। তথ্য গোপনীয়, অনুমতি ছাড়া শেয়ার করবেন না।</div>
+</div>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function get(p){try{const r=await fetch(URL_+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}return r.ok?await r.json():[];}catch(e){return [];}}
+const MID=new URLSearchParams(location.search).get('id')||'';let NAME='member',PH='';
+function row(t,cells){const tr=document.createElement('tr');cells.forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.appendChild(td);});t.appendChild(tr);}
+function kv(label,val){const d=document.createElement('div');const b=document.createElement('b');b.textContent=label+': ';d.appendChild(b);d.appendChild(document.createTextNode(val||'—'));$('info').appendChild(d);}
+function card(cls,v,l){const d=document.createElement('div');d.className=cls;const b=document.createElement('b');b.textContent=v;const s=document.createElement('small');s.textContent=l;d.appendChild(b);d.appendChild(s);$('sum').appendChild(d);}
+async function load(){
+ if(!token){$('st').textContent='আগে অ্যাডমিন পেজে লগইন করুন।';return;}
+ if(!/^[0-9a-f-]{36}$/.test(MID)){$('st').textContent='ভুল ঠিকানা';return;}
+ $('bk').href='mprofile.html?id='+MID;
+ const rows=await get('members?select=*&id=eq.'+MID);const M=rows&&rows[0];if(!M){$('st').textContent='সদস্য পাওয়া যায়নি।';return;}
+ const P=await get('payments?select=*&member_id=eq.'+MID+'&order=month.desc')||[];const D=await get('dues?select=*&member_id=eq.'+MID+'&order=month.desc')||[];
+ NAME=M.name||'member';PH=M.phone||'';
+ $('gen').textContent='তৈরির তারিখ: '+new Date().toLocaleDateString('bn-BD');
+ const rp=$('rp');if(M.photo){rp.style.backgroundImage='url("'+M.photo+'")';}else rp.textContent=(M.name||'?').trim().charAt(0);
+ kv('নাম',M.name);kv('ফোন',M.phone);kv('ঠিকানা',M.area);kv('পেশা',M.occupation);
+ kv('যোগদান',dfmt(M.joined_on||M.created_at));kv('অবস্থা',M.status==='approved'?'সক্রিয় সদস্য':'অনুমোদনের অপেক্ষায়');kv('মাসিক চাঁদা',M.status==='approved'?'৳ '+bn(M.monthly_amount):'—');
+ const un=D.filter(x=>!x.paid),pd=D.filter(x=>x.paid);
+ card('g2','৳ '+bn(sum(P)),'মোট জমা');card('b',bn(P.length)+' মাস','চাঁদা জমার মাস');card('b','৳ '+bn(M.monthly_amount||0),'মাসিক চাঁদা');
+ card('r','৳ '+bn(sum(un)),'বাকি বকেয়া');card('r',bn(un.length)+' মাস','বকেয়ার মাস');card('g2','৳ '+bn(sum(pd)),'পরিশোধিত বকেয়া');
+ P.forEach(x=>row($('pt'),[x.month,'৳ '+bn(x.amount)]));if(!P.length)row($('pt'),['কোনো জমা নেই','']);
+ D.forEach(x=>row($('dt'),[x.month,'৳ '+bn(x.amount),x.paid?'পরিশোধিত'+(x.paid_on?' ('+dfmt(x.paid_on)+')':''):'বাকি',x.note||'']));if(!D.length)row($('dt'),['কোনো বকেয়া নেই','','','']);}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('লাইব্রেরি লোড হয়নি'));document.head.appendChild(s);});}
+async function pdf(){const st=$('st');st.textContent='PDF তৈরি হচ্ছে...';
+ try{if(!window.html2canvas)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if(!window.jspdf)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const el=$('report');const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:794});
+  const doc=new window.jspdf.jsPDF('p','pt','a4');const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),mg=18;
+  const iw=pw-2*mg,pageH=(ph-2*mg)*cv.width/iw;let y=0,first=true;
+  while(y<cv.height){const sh=Math.min(pageH,cv.height-y);const c=document.createElement('canvas');c.width=cv.width;c.height=sh;c.getContext('2d').drawImage(cv,0,y,cv.width,sh,0,0,cv.width,sh);
+   if(!first)doc.addPage();doc.addImage(c.toDataURL('image/jpeg',0.92),'JPEG',mg,mg,iw,sh*iw/cv.width);y+=sh;first=false;}
+  doc.save('member-'+(PH||MID.slice(0,8))+'.pdf');st.textContent='ডাউনলোড হয়েছে ✓';
+ }catch(e){st.textContent='PDF হয়নি ('+e.message+')। "প্রিন্ট" বোতাম চেপে "Save as PDF" বেছে নিন।';}}
+$('dl').onclick=pdf;$('pr').onclick=()=>window.print();
+load();
+</script></body></html>

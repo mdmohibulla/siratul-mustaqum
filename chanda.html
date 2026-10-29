@@ -40,7 +40,7 @@ async function loadDues(){DUES={};HIST={};try{const r=await fetch(URL_+'/rest/v1
  if(r.ok)(await r.json()).forEach(x=>{if(x.paid)(HIST[x.member_id]=HIST[x.member_id]||[]).push(x);else(DUES[x.member_id]=DUES[x.member_id]||[]).push(x);});}catch(e){}}
 function remMsg(m){const dl=DUES[m.id]||[];const t=dl.reduce((s,x)=>s+Number(x.amount),0);return 'আসসালামু আলাইকুম '+m.name+', সিরাতুল মুস্তাকিমের এই মাসের চাঁদা ('+bn(m.monthly_amount)+' টাকা) ১০ তারিখের মধ্যে জমা দেওয়ার অনুরোধ রইল।'+(t?' আপনার বিগত '+bn(dl.length)+' মাসের বকেয়া ৳ '+bn(t)+' আছে, দয়া করে পরিশোধ করুন।':'')+' জাযাকাল্লাহ।';}
 async function loadPending(){
- const ps=await api('members?select=*&status=eq.pending&order=created_at')||[];
+ const ps=await api('members?select=id,name,phone,area&status=eq.pending&order=created_at')||[];
  $('pendCard').style.display=ps.length?'block':'none';const box=$('pend');box.innerHTML='';
  ps.forEach(m=>{const d=document.createElement('div');d.style.cssText='padding:8px 0;border-bottom:1px solid #1e293b';d.textContent=m.name+' | '+(m.phone||'')+' | '+(m.email||'')+' | '+(m.area||'')+'  ';
   const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;x.style.marginRight='4px';d.appendChild(x);};
@@ -51,7 +51,7 @@ async function loadPending(){
 async function load(){
  loadPending();
  const mon=$('mon').value;
- const ms=await api('members?select=*&active=eq.true&status=eq.approved&order=name')||[];
+ const ms=await api('members?select=id,name,phone,monthly_amount,status&active=eq.true&status=eq.approved&order=name')||[];
  const ps=await api('payments?select=*&month=eq.'+mon)||[];
  const pm={};ps.forEach(p=>pm[p.member_id]=p);
  await loadDues();
