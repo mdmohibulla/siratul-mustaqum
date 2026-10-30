@@ -8,6 +8,7 @@
 <div class="dash hide" id="dash">
 <a class="dcard blue" href="requests.html"><span>📥</span><b id="n_req">–</b><small>সাহায্যের আবেদন</small></a>
 <a class="dcard green" href="members.html"><span>👥</span><b id="n_mem">–</b><small>সদস্য</small></a>
+<a class="dcard blue" href="comments.html"><span>💬</span><b id="n_cm">–</b><small>নতুন মন্তব্য</small></a>
 <a class="dcard amber" href="members.html?f=pending"><span>🆕</span><b id="n_pen">–</b><small>অনুমোদনের অপেক্ষায়</small></a>
 <a class="dcard purple" href="chanda.html"><span>💰</span><b id="n_pay">–</b><small>এই মাসে জমা</small></a>
 <a class="dcard pink" href="donations.html"><span>💚</span><b id="n_don">–</b><small>অনুদান যাচাই বাকি</small></a>
@@ -45,7 +46,8 @@ async function counts(){try{
  try{const [ap,pa,dn,lg]=await Promise.all([api('activities?select=id'),api('payments?select=amount'),api('donations?select=amount,verified'),api('ledger?select=kind,amount')]);
   $('n_act').textContent=bn(ap.length);const inc=pa.reduce((s,x)=>s+Number(x.amount),0)+dn.filter(x=>x.verified).reduce((s,x)=>s+Number(x.amount),0)+lg.filter(x=>x.kind==='income').reduce((s,x)=>s+Number(x.amount),0);
   const ex=lg.filter(x=>x.kind==='expense').reduce((s,x)=>s+Number(x.amount),0);$('n_tot').textContent='৳ '+bn(inc);$('n_exp').textContent='৳ '+bn(ex);$('n_bal').textContent='৳ '+bn(inc-ex);}catch(e){}
- try{const r=await fetch(URL_+'/rest/v1/dues?select=amount&paid=eq.false',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){const x=await r.json();$('n_dues').textContent='৳ '+bn(x.reduce((s,y)=>s+Number(y.amount),0));}}catch(e){}}
+ try{const r=await fetch(URL_+'/rest/v1/dues?select=amount&paid=eq.false',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){const x=await r.json();$('n_dues').textContent='৳ '+bn(x.reduce((s,y)=>s+Number(y.amount),0));}}catch(e){}
+ try{const r=await fetch(URL_+'/rest/v1/comments?select=id&status=eq.new',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){$('n_cm').textContent=bn((await r.json()).length);}}catch(e){}}
 async function dl(path,cols,name){const rows=await api(path)||[];
  const q=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
  const lines=[cols.map(c=>q(c[1])).join(',')].concat(rows.map(r=>cols.map(c=>q(r[c[0]])).join(',')));

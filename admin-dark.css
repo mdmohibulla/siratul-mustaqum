@@ -97,3 +97,12 @@ header strong::before{content:"";display:inline-block;width:44px;height:44px;mar
 
 .av{background-size:cover;background-position:center}
 img.av{object-fit:cover;display:block}
+
+.cm{background:#0b1220;border:1px solid #1e293b;border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.cm.new{border-color:#3b82f6}
+.cm .ch{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cm p{color:#f1f5f9;margin:8px 0}
+.cm .reply{margin-top:8px;padding:10px 12px;border-left:4px solid #22c55e;background:#04200f;border-radius:8px;color:#bbf7d0}
+.tg{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
+.tg.b{background:#0a1a3a;color:#93c5fd;border-color:#1e3a8a}.tg.g{background:#04200f;color:#86efac;border-color:#14532d}
+.tg.r{background:#2a0a0a;color:#fca5a5;border-color:#7f1d1d}.tg.p{background:#1a0b33;color:#d8b4fe;border-color:#4c1d95}.tg.y{background:#271a05;color:#fcd34d;border-color:#92400e}

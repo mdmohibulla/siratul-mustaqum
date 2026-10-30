@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123d32">
+<title>মতামত | সিরাতুল মুস্তাকিম</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="extra.css">
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="index.html" aria-label="হোম"><span class="brand-mark">س</span><span><strong>সিরাতুল মুস্তাকিম</strong><small>মানবতার পাশে, কল্যাণের পথে</small></span></a>
+<button class="menu-toggle" id="menuToggle" aria-label="মেনু খুলুন" aria-expanded="false">☰</button>
+<nav id="nav">
+<a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="rules.html">নীতিমালা</a><a href="member.html">সদস্য হোন</a><a href="activities.html">কার্যক্রম</a><a href="donate.html">অনুদান</a><a href="reports.html">হিসাব ও রিপোর্ট</a><a class="nav-cta" href="apply.html">সাহায্যের আবেদন</a>
+</nav>
+</header>
+<main>
+<div class="wrapx"><h1 class="greet" style="font-size:28px">💬 মতামত ও মন্তব্য</h1><p id="note">সংগঠনের উন্নয়নে আপনার মতামত, পরামর্শ বা অভিযোগ জানান।</p>
+<div class="stat-grid" id="top"></div>
+<form class="application-form" id="cf" style="margin-top:16px">
+<div class="form-grid"><label>ধরন<select id="ck"><option>মতামত</option><option>পরামর্শ</option><option>অভিযোগ</option></select></label></div>
+<label class="full">আপনার মন্তব্য<textarea id="cb" rows="4" maxlength="1000" required placeholder="এখানে লিখুন..."></textarea></label>
+<label class="consent"><input type="checkbox" id="cp"> 🔒 শুধু অ্যাডমিন দেখবেন (অন্য সদস্যরা দেখবে না)</label>
+<label class="consent"><input type="checkbox" id="ca"> 🙈 আমার নাম অন্য সদস্যদের থেকে গোপন রাখুন</label>
+<button class="button button-primary" type="submit">মন্তব্য পাঠান</button><p class="form-note" id="cm">সবার জন্য খোলা মন্তব্যে অসৌজন্যমূলক বা ব্যক্তিগত আক্রমণ করবেন না। অ্যাডমিন তা সরিয়ে দিতে পারেন।</p></form>
+<h4 class="lab">সব মন্তব্য</h4><div id="list"></div></div>
+<script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');
+async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
+function stat(cls,v,l){const d=document.createElement('div');d.className='stat '+cls;d.innerHTML='<b></b><small></small>';d.children[0].textContent=v;d.children[1].textContent=l;$('top').appendChild(d);}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+async function load(){const d=await rpc('member_comments',{p_token:tk});
+ if(d===null){$('note').textContent='মন্তব্য আনা যায়নি। শুধু অনুমোদিত সদস্যরা এই পেজ ব্যবহার করতে পারেন।';$('cf').style.display='none';return;}
+ $('top').innerHTML='';stat('blue',bn(d.length),'মোট মন্তব্য');stat('green',bn(d.filter(x=>x.mine).length),'আমার মন্তব্য');stat('purple',bn(d.filter(x=>x.mine&&x.reply).length),'উত্তর পেয়েছি');
+ const box=$('list');box.innerHTML='';
+ d.forEach(x=>{const c=document.createElement('div');c.className='cm'+(x.mine?' mine':'');
+  const h=document.createElement('div');h.className='ch';const n=document.createElement('b');n.textContent=x.author;h.appendChild(n);
+  h.appendChild(tag(x.kind,x.kind==='অভিযোগ'?'r':x.kind==='পরামর্শ'?'g':'b'));
+  if(x.is_private)h.appendChild(tag('🔒 গোপন','p'));if(x.mine&&x.anonymous)h.appendChild(tag('🙈 নাম গোপন','p'));if(x.mine&&x.hidden)h.appendChild(tag('⛔ অ্যাডমিন লুকিয়েছেন','r'));
+  const dt=document.createElement('small');dt.textContent=new Date(x.created_at).toLocaleDateString('bn-BD');dt.style.marginLeft='auto';h.appendChild(dt);c.appendChild(h);
+  const p=document.createElement('p');p.textContent=x.body;p.style.cssText='white-space:pre-wrap;margin:8px 0';c.appendChild(p);
+  if(x.reply){const r=document.createElement('div');r.className='reply';const b=document.createElement('b');b.textContent='অ্যাডমিনের উত্তর: ';r.appendChild(b);r.appendChild(document.createTextNode(x.reply));c.appendChild(r);}
+  if(x.mine){const b=document.createElement('button');b.className='button button-outline';b.textContent='🗑️ মুছুন';b.style.cssText='margin-top:8px;padding:6px 14px';
+   b.onclick=async()=>{if(confirm('আপনার এই মন্তব্য মুছে ফেলবেন?')){await rpc('member_delete_comment',{p_token:tk,p_id:x.id});load();}};c.appendChild(b);}
+  box.appendChild(c);});
+ if(!d.length)box.textContent='এখনও কোনো মন্তব্য নেই। প্রথম মন্তব্যটি আপনিই করুন!';}
+$('cf').onsubmit=async e=>{e.preventDefault();const m=$('cm');m.textContent='পাঠানো হচ্ছে...';
+ const j=await rpc('member_add_comment',{p_token:tk,p_kind:$('ck').value,p_body:$('cb').value,p_private:$('cp').checked,p_anonymous:$('ca').checked});
+ if(j&&j.ok){$('cb').value='';$('cp').checked=$('ca').checked=false;m.textContent='আপনার মন্তব্য পাঠানো হয়েছে ✓ জাযাকাল্লাহ।';load();}
+ else m.textContent=(j&&j.error)||'পাঠানো যায়নি। আবার চেষ্টা করুন।';};
+load();
+</script>
+</main>
+<footer>
+<div class="footer-brand"><span class="brand-mark">س</span><div><strong>সিরাতুল মুস্তাকিম</strong><p>মানবতার পাশে, কল্যাণের পথে</p></div></div>
+<p class="footer-note">একটি মানবিক ও অরাজনৈতিক উদ্যোগ।</p>
+<div class="footer-bottom"><span>© <span id="year"></span> সিরাতুল মুস্তাকিম</span><a href="index.html">হোমে ফিরে যান</a></div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

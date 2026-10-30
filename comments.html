@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>মন্তব্য ও মতামত | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>মন্তব্য ও মতামত</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="dash sm" id="top"></div>
+<div class="bar" style="margin-top:14px"><button id="f_all" class="on">সব</button><button id="f_new" class="alt">নতুন</button><button id="f_comp" class="alt">অভিযোগ</button><button id="f_priv" class="alt">গোপন</button></div>
+<div id="list"></div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+let ROWS=[],F='all';
+function mk(p,cls,i,v,l){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=i;d.children[1].textContent=v;d.children[2].textContent=l;p.appendChild(d);}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+function draw(){['all','new','comp','priv'].forEach(k=>{$('f_'+k).className=F===k?'on':'alt';});
+ const t=$('top');t.innerHTML='';mk(t,'blue','💬',bn(ROWS.length),'মোট মন্তব্য');mk(t,'amber','🆕',bn(ROWS.filter(x=>x.status==='new').length),'নতুন');mk(t,'red','⚠️',bn(ROWS.filter(x=>x.kind==='অভিযোগ').length),'অভিযোগ');mk(t,'purple','🔒',bn(ROWS.filter(x=>x.is_private).length),'গোপন');
+ const L=ROWS.filter(x=>F==='all'||(F==='new'&&x.status==='new')||(F==='comp'&&x.kind==='অভিযোগ')||(F==='priv'&&x.is_private));
+ const box=$('list');box.innerHTML='';
+ L.forEach(x=>{const c=document.createElement('div');c.className='cm'+(x.status==='new'?' new':'');
+  const h=document.createElement('div');h.className='ch';const nm=document.createElement('a');nm.href='mprofile.html?id='+x.member_id;nm.textContent=(x.members&&x.members.name)||'সদস্য';nm.style.fontWeight='700';h.appendChild(nm);
+  h.appendChild(tag(x.kind,x.kind==='অভিযোগ'?'r':x.kind==='পরামর্শ'?'g':'b'));
+  if(x.is_private)h.appendChild(tag('🔒 গোপন','p'));if(x.anonymous)h.appendChild(tag('🙈 নাম গোপন','p'));if(x.hidden)h.appendChild(tag('⛔ লুকানো','r'));if(x.status==='new')h.appendChild(tag('নতুন','y'));
+  const dt=document.createElement('small');dt.textContent=new Date(x.created_at).toLocaleString('bn-BD');dt.style.marginLeft='auto';h.appendChild(dt);c.appendChild(h);
+  const p=document.createElement('p');p.textContent=x.body;p.style.cssText='white-space:pre-wrap;margin:8px 0';c.appendChild(p);
+  if(x.reply){const r=document.createElement('div');r.className='reply';const b=document.createElement('b');b.textContent='আপনার উত্তর: ';r.appendChild(b);r.appendChild(document.createTextNode(x.reply));c.appendChild(r);}
+  const bt=(txt,cls,fn)=>{const b=document.createElement('button');b.textContent=txt;if(cls)b.className=cls;b.onclick=fn;b.style.cssText='margin:8px 8px 0 0;padding:6px 12px;font-size:13px';c.appendChild(b);};
+  bt(x.reply?'উত্তর বদলান':'উত্তর দিন','',async()=>{const v=prompt('সদস্যকে উত্তর লিখুন',x.reply||'');if(v===null)return;
+   await api('comments?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({reply:v.trim()||null,replied_at:v.trim()?new Date().toISOString():null,status:'read'})});load();});
+  if(x.status==='new')bt('পড়া হয়েছে','alt',async()=>{await api('comments?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({status:'read'})});load();});
+  if(!x.is_private)bt(x.hidden?'আবার দেখান':'সদস্যদের থেকে লুকান','alt',async()=>{await api('comments?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({hidden:!x.hidden})});load();});
+  bt('মুছুন','alt red',async()=>{if(confirm('এই মন্তব্য মুছে যাবে। নিশ্চিত?')){await api('comments?id=eq.'+x.id,{method:'DELETE'});load();}});
+  box.appendChild(c);});
+ if(!L.length)box.textContent='কোনো মন্তব্য নেই।';}
+async function load(){ROWS=await api('comments?select=*,members(name,phone)&order=created_at.desc')||[];draw();}
+$('f_all').onclick=()=>{F='all';draw();};$('f_new').onclick=()=>{F='new';draw();};$('f_comp').onclick=()=>{F='comp';draw();};$('f_priv').onclick=()=>{F='priv';draw();};
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>
