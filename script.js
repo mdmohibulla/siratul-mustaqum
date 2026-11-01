@@ -149,3 +149,17 @@ window.installApp = async () => {
   if (installEv) { installEv.prompt(); installEv = null; }
   else alert('ফোনে ইনস্টল করতে ব্রাউজারের মেনু (⋮ বা শেয়ার বোতাম) থেকে "হোম স্ক্রিনে যোগ করুন" বা "Install app" বেছে নিন।');
 };
+
+// autoRefresh: দিন বদলালে (নতুন মাস শুরু হলে) বা অনেকক্ষণ পর ফিরে এলে পেজ নিজে থেকে নতুন করে লোড হবে
+(function autoRefresh() {
+  const dayKey = () => { const d = new Date(); return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); };
+  const k0 = dayKey();
+  let hiddenAt = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { hiddenAt = Date.now(); return; }
+    if (dayKey() !== k0 || (hiddenAt && Date.now() - hiddenAt > 10 * 60 * 1000)) location.reload();
+  });
+  window.addEventListener('pageshow', e => { if (e.persisted || dayKey() !== k0) location.reload(); });
+  const t = new Date();
+  setTimeout(() => location.reload(), new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1, 0, 0, 5) - t);
+})();

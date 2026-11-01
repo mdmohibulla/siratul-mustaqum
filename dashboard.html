@@ -41,14 +41,17 @@ const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-
 function reminder(M,d){
  const n=new Date(),day=n.getDate(),cm=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
  const paid=d.payments.some(p=>p.month===cm);let cls,icon,msg;
- if(paid){cls='green';icon='✅';msg='এই মাসের চাঁদা জমা হয়েছে। জাযাকাল্লাহু খাইরান!';}
- else if(day<=10){const left=10-day;cls=left<=3?'red':'amber';icon='⏰';msg=left===0?'আজই চাঁদা দেওয়ার শেষ দিন (১০ তারিখ)! পরিমাণ: ৳ '+bn(M.monthly_amount):'এই মাসের চাঁদা ১০ তারিখের মধ্যে দিন। আর '+bn(left)+' দিন বাকি। পরিমাণ: ৳ '+bn(M.monthly_amount);}
- else{cls='red';icon='⚠️';msg='১০ তারিখ পার হয়ে গেছে, এই মাসের চাঁদা এখনও জমা হয়নি। দয়া করে দ্রুত দিন। পরিমাণ: ৳ '+bn(M.monthly_amount);}
+ const BMN=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+ const MN=BMN[n.getMonth()]+' '+n.getFullYear().toLocaleString('bn-BD',{useGrouping:false});
+ if(paid){cls='green';icon='✅';msg=MN+' মাসের চাঁদা জমা হয়েছে। জাযাকাল্লাহু খাইরান!';}
+ else if(day<=10){const left=10-day;cls=left<=3?'red':'amber';icon='⏰';msg=left===0?'আজই '+MN+' মাসের চাঁদা দেওয়ার শেষ দিন (১০ তারিখ)! পরিমাণ: ৳ '+bn(M.monthly_amount):MN+' মাসের চাঁদা ১০ তারিখের মধ্যে দিন। আর '+bn(left)+' দিন বাকি। পরিমাণ: ৳ '+bn(M.monthly_amount);}
+ else{cls='red';icon='⚠️';msg=MN+' মাসের চাঁদার ১০ তারিখ পার হয়ে গেছে, এখনও জমা হয়নি। দয়া করে দ্রুত দিন। পরিমাণ: ৳ '+bn(M.monthly_amount);}
  const box=$('rem');box.innerHTML='';const r=document.createElement('div');r.className='rem '+cls;
  const i=document.createElement('span');i.className='i';i.textContent=icon;const t=document.createElement('div');t.className='t';t.textContent=msg;
  const bt=document.createElement('div');bt.className='btns';
  if(!paid){const a=document.createElement('a');a.href='donate.html';a.className='button button-primary';a.textContent='💚 কীভাবে দেবেন';bt.appendChild(a);}
  const c=document.createElement('button');c.className='button button-outline';c.textContent='📲 ফোনে রিমাইন্ডার যোগ করুন';c.onclick=icsDownload;bt.appendChild(c);
+ const dd=document.createElement('div');dd.style.cssText='font-weight:400;font-size:13px;color:#cbd5e1;margin-top:4px';dd.textContent='আজকের তারিখ: '+n.toLocaleDateString('bn-BD');t.appendChild(dd);
  t.appendChild(bt);r.appendChild(i);r.appendChild(t);box.appendChild(r);
  if(!paid){try{const k=cm+'-'+day;if(localStorage.getItem('remDay')!==k){localStorage.setItem('remDay',k);popup(msg);}}catch(e){popup(msg);}}
 }
@@ -65,7 +68,7 @@ function icsDownload(){
 function dueList(d){const L=(d.dues||[]).filter(x=>!x.paid);if(!L.length)return;const t=L.reduce((s,x)=>s+Number(x.amount),0);
  const box=$('duebox');box.innerHTML='';const r=document.createElement('div');r.className='rem red';
  const i=document.createElement('span');i.className='i';i.textContent='💳';
- const c=document.createElement('div');c.className='t';c.textContent='আপনার বিগত বকেয়া চাঁদা আছে — মোট ৳ '+bn(t);
+ const c=document.createElement('div');c.className='t';c.textContent='পুরনো মাসের বকেয়া চাঁদা আছে — মোট ৳ '+bn(t);
  L.forEach(x=>{const e=document.createElement('div');e.style.cssText='font-weight:500;margin-top:6px;font-size:16px';e.textContent='• '+x.month+' মাস: ৳ '+bn(x.amount)+(x.note?' ('+x.note+')':'');c.appendChild(e);});
  const a=document.createElement('a');a.href='donate.html';a.className='button button-primary';a.textContent='💚 কীভাবে দেবেন';a.style.marginTop='10px';a.style.display='inline-block';c.appendChild(a);const h=document.createElement('a');h.href='my-dues.html';h.className='button button-outline';h.textContent='📜 ইতিহাস';h.style.cssText='margin-left:8px;display:inline-block;margin-top:10px';c.appendChild(h);
  r.appendChild(i);r.appendChild(c);box.appendChild(r);}
