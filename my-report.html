@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>আমার চাঁদার রিপোর্ট | সিরাতুল মুস্তাকিম ফাউন্ডেশন</title><link rel="stylesheet" href="report.css"></head><body>
+<div class="tool"><button id="dl">📥 ডাউনলোড</button><button id="pr" class="alt">🖨️ প্রিন্ট</button><a href="dashboard.html">← ফিরে যান</a><span id="st"></span></div>
+<div class="sheet" id="report"><div class="rh"><img src="logo.png" alt=""><div><h1>সিরাতুল মুস্তাকিম ফাউন্ডেশন</h1><div>মানবতার পাশে, অসহায়দের জন্য</div></div></div>
+<div class="rtitle" style="margin:14px 0 6px">সদস্যের চাঁদার রিপোর্ট</div><small id="gen" style="color:#6b7280"></small>
+<div class="pinfo"><div class="rphoto" id="rp"></div><div class="g" id="info"></div></div>
+<div class="sg" id="sum"></div>
+<h3>চাঁদা জমার ইতিহাস</h3><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>জমার তারিখ</th></tr></thead><tbody id="pt"></tbody></table>
+<h3>বকেয়ার তালিকা</h3><table><thead><tr><th>মাস</th><th>পরিমাণ</th><th>অবস্থা</th></tr></thead><tbody id="dt"></tbody></table>
+<div class="foot">এই রিপোর্ট সংগঠনের অনলাইন হিসাব থেকে তৈরি।</div></div>
+<script src="pdfutil.js"></script>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+if(!tk)location.replace('member-login.html');
+
+function row(t,cells){const tr=document.createElement('tr');cells.forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.appendChild(td);});t.appendChild(tr);}
+function kv(l,v){const d=document.createElement('div');const b=document.createElement('b');b.textContent=l+': ';d.appendChild(b);d.appendChild(document.createTextNode(v||'—'));$('info').appendChild(d);}
+function card(c,v,l){const d=document.createElement('div');d.className=c;const b=document.createElement('b');b.textContent=v;const s=document.createElement('small');s.textContent=l;d.appendChild(b);d.appendChild(s);$('sum').appendChild(d);}
+const sm=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);let FN='my-report.pdf';
+(async()=>{const d=await rpc('member_me',{p_token:tk});if(!d){location.replace('member-login.html');return;}
+ const M=d.member,P=d.payments||[],D=d.dues||[],un=D.filter(x=>!x.paid),pd=D.filter(x=>x.paid);
+ $('gen').textContent='তৈরির তারিখ: '+new Date().toLocaleDateString('bn-BD');
+ if(M.photo)$('rp').style.backgroundImage='url("'+M.photo+'")';else $('rp').textContent=(M.name||'?').trim().charAt(0);
+ kv('নাম',M.name);kv('ফোন',M.phone);kv('ঠিকানা',M.area);kv('পেশা',M.occupation);kv('যোগদান',dfmt(M.joined_on||M.created_at));kv('মাসিক চাঁদা','৳ '+bn(M.monthly_amount||0));
+ card('g2','৳ '+bn(sm(P)),'মোট জমা');card('b',bn(P.length)+' মাস','জমার মাস');card('b','৳ '+bn(M.monthly_amount||0),'মাসিক চাঁদা');
+ card('r','৳ '+bn(sm(un)),'বাকি বকেয়া');card('r',bn(un.length)+' মাস','বকেয়ার মাস');card('g2','৳ '+bn(sm(pd)),'পরিশোধিত বকেয়া');
+ P.forEach(x=>row($('pt'),[x.month,'৳ '+bn(x.amount),dfmt(x.created_at)]));if(!P.length)row($('pt'),['কোনো জমা নেই','','']);
+ D.forEach(x=>row($('dt'),[x.month,'৳ '+bn(x.amount),x.paid?'পরিশোধিত'+(x.paid_on?' ('+dfmt(x.paid_on)+')':''):'বাকি']));if(!D.length)row($('dt'),['কোনো বকেয়া নেই','','']);
+ FN='report-'+(M.phone||'member')+'.pdf';})();
+$('dl').onclick=async()=>{$('st').textContent='তৈরি হচ্ছে...';try{await savePdf($('report'),FN);$('st').textContent='ডাউনলোড হয়েছে ✓';}catch(e){$('st').textContent=e.message+' — "প্রিন্ট" চেপে "Save as PDF" বেছে নিন।';}};
+
+$('pr').onclick=()=>window.print();
+</script></body></html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>ব্যাকআপ | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>ব্যাকআপ</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="dash sm"><div class="dcard green" id="bj" style="cursor:pointer"><span>💾</span><b>সব তথ্য</b><small>JSON ফাইলে ডাউনলোড</small></div>
+<div class="dcard cyan" id="bc" style="cursor:pointer"><span>📑</span><b>CSV</b><small>টেবিল ধরে আলাদা ফাইল</small></div></div>
+<label style="display:block;margin:14px 0"><input type="checkbox" id="ph" style="width:auto"> সদস্যদের ছবিসহ (ফাইল বড় হবে)</label>
+<p id="last" style="color:#cbd5e1"></p><p id="st" style="color:#fbbf24"></p>
+<p style="color:#94a3b8">সপ্তাহে একবার ব্যাকআপ নিয়ে ফাইলটা নিজের কম্পিউটার বা Google Drive-এ রাখুন। পাসওয়ার্ডের তথ্য ব্যাকআপে থাকে না।</p></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function postRet(p,b){const r=await fetch(URL_+'/rest/v1/'+p,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(b)});
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}return await r.json();}
+async function get(p){const r=await fetch(URL_+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';throw 0;}if(!r.ok)return null;return await r.json();}
+async function collect(){const st=$('st');const mcols='id,name,phone,area,occupation,monthly_amount,status,active,joined_on,created_at'+($('ph').checked?',photo':'');
+ const T={members:'members?select='+mcols,payments:'payments?select=*',dues:'dues?select=*',donations:'donations?select=*',ledger:'ledger?select=*',activities:'activities?select=*',
+  help_requests:'help_requests?select=*',comments:'comments?select=*',payment_claims:'payment_claims?select=*',notices:'notices?select=*'};
+ const out={_তারিখ:new Date().toISOString()};
+ for(const k in T){st.textContent=k+' আনা হচ্ছে...';const d=await get(T[k]);if(d!==null)out[k]=d;}
+ st.textContent='';return out;}
+function save(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();}
+function mark(){localStorage.setItem('lastBackup',String(Date.now()));show();}
+function show(){const l=localStorage.getItem('lastBackup');$('last').textContent=l?'শেষ ব্যাকআপ: '+new Date(Number(l)).toLocaleString('bn-BD'):'এখনও ব্যাকআপ নেওয়া হয়নি।';}
+const q=v=>{let s=typeof v==='object'&&v!==null?JSON.stringify(v):String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+$('bj').onclick=async()=>{try{const o=await collect();save('backup-'+today()+'.json',JSON.stringify(o,null,1),'application/json');mark();}catch(e){$('st').textContent='ব্যাকআপ হয়নি';}};
+$('bc').onclick=async()=>{try{const o=await collect();let n=0;for(const k in o){if(k[0]==='_'||!o[k].length)continue;const cols=Object.keys(o[k][0]);
+  const lines=[cols.map(q).join(',')].concat(o[k].map(r=>cols.map(c=>q(r[c])).join(',')));save(k+'-'+today()+'.csv','\ufeff'+lines.join('\n'),'text/csv;charset=utf-8');n++;}
+ $('st').textContent=n+'টি CSV ফাইল নামানো হয়েছে (ব্রাউজার একাধিক ডাউনলোডের অনুমতি চাইলে "Allow" দিন)।';mark();}catch(e){$('st').textContent='ব্যাকআপ হয়নি';}};
+show();
+if(token){$('app').classList.remove('hide');}else $('need').classList.remove('hide');
+</script></body></html>

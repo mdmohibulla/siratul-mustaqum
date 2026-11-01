@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সদস্য আইডি কার্ড | সিরাতুল মুস্তাকিম ফাউন্ডেশন</title><link rel="stylesheet" href="report.css"></head><body>
+<div class="tool"><button id="dl">📥 ডাউনলোড</button><button id="pr" class="alt">🖨️ প্রিন্ট</button><a href="dashboard.html">← ফিরে যান</a><span id="st"></span></div>
+<style>
+.idc{width:520px;height:328px;margin:0 auto 30px;border-radius:20px;background:linear-gradient(135deg,#052e16 0%,#14532d 60%,#166534 100%);color:#fff;position:relative;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.idc:before{content:"";position:absolute;inset:8px;border:2px solid #d4a017;border-radius:14px;opacity:.9}
+.idc .top{display:flex;align-items:center;gap:12px;padding:20px 24px 0}
+.idc .top img{width:56px;height:56px;border-radius:50%;background:#fff}
+.idc .top b{display:block;font-size:19px}.idc .top small{color:#fde68a;font-size:13px}
+.idc .mid{display:flex;gap:20px;padding:16px 28px}
+.idc .ph{width:112px;height:112px;border-radius:50%;border:3px solid #d4a017;background:#ecfdf5 center/cover;display:grid;place-items:center;font-size:46px;font-weight:800;color:#15803d;flex:none}
+.idc .inf div{font-size:15px;margin:4px 0}.idc .inf .nm{font-size:23px;font-weight:800;margin-top:0}.idc .inf span{color:#bbf7d0}
+.idc .bot{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:13px;color:#fde68a;letter-spacing:.3px}
+.idc .no{position:absolute;right:28px;bottom:40px;font-size:13px;color:#fde68a}
+</style>
+<div id="msg" style="text-align:center;padding:20px"></div>
+<div class="idc" id="report" style="display:none"><div class="top"><img src="logo.png" alt=""><div><b>সিরাতুল মুস্তাকিম ফাউন্ডেশন</b><small>সদস্য পরিচয়পত্র</small></div></div>
+<div class="mid"><div class="ph" id="ph"></div><div class="inf" id="inf"></div></div><div class="no" id="no"></div><div class="bot">মানবতার পাশে, অসহায়দের জন্য</div></div>
+<script src="pdfutil.js"></script>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+if(!tk)location.replace('member-login.html');
+
+function ln(l,v,cls){const d=document.createElement('div');if(cls)d.className=cls;if(l){const s=document.createElement('span');s.textContent=l+': ';d.appendChild(s);}d.appendChild(document.createTextNode(v||'—'));$('inf').appendChild(d);}
+let FN='id-card.png';
+(async()=>{const d=await rpc('member_me',{p_token:tk});if(!d){location.replace('member-login.html');return;}const M=d.member;
+ if(M.status!=='approved'){$('msg').textContent='সদস্য হিসেবে অনুমোদনের পর আপনার আইডি কার্ড পাওয়া যাবে।';$('dl').style.display='none';return;}
+ $('report').style.display='block';if(M.photo)$('ph').style.backgroundImage='url("'+M.photo+'")';else $('ph').textContent=(M.name||'?').trim().charAt(0);
+ ln('',M.name,'nm');ln('ফোন',M.phone);ln('ঠিকানা',M.area);ln('যোগদান',dfmt(M.joined_on||M.created_at));
+ $('no').textContent='আইডি: SMF-'+String(M.id).slice(0,6).toUpperCase();FN='id-card-'+(M.phone||'member')+'.png';})();
+$('dl').onclick=async()=>{$('st').textContent='তৈরি হচ্ছে...';try{await savePng($('report'),FN);$('st').textContent='ডাউনলোড হয়েছে ✓';}catch(e){$('st').textContent=e.message;}};
+
+$('pr').onclick=()=>window.print();
+</script></body></html>

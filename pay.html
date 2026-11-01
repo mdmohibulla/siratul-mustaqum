@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123d32">
+<title>চাঁদা জমা দিন | সিরাতুল মুস্তাকিম</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="extra.css">
+</head>
+<body>
+<header class="site-header">
+<a class="brand" href="index.html" aria-label="হোম"><span class="brand-mark">س</span><span><strong>সিরাতুল মুস্তাকিম</strong><small>মানবতার পাশে, কল্যাণের পথে</small></span></a>
+<button class="menu-toggle" id="menuToggle" aria-label="মেনু খুলুন" aria-expanded="false">☰</button>
+<nav id="nav">
+<a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="rules.html">নীতিমালা</a><a href="member.html">সদস্য হোন</a><a href="activities.html">কার্যক্রম</a><a href="donate.html">অনুদান</a><a href="reports.html">হিসাব ও রিপোর্ট</a><a class="nav-cta" href="apply.html">সাহায্যের আবেদন</a>
+</nav>
+</header>
+<main>
+<div class="wrapx"><h1 class="greet" style="font-size:28px">💳 চাঁদা জমা দিন</h1>
+<p>প্রথমে <a href="donate.html"><u>বিকাশ/নগদের নম্বরে</u></a> টাকা পাঠান (Send Money), তারপর TrxID দিয়ে এখানে জানান। অ্যাডমিন যাচাই করলে চাঁদা জমা হবে এবং আপনি রসিদ পাবেন।</p>
+<div class="stat-grid" id="top"></div>
+<form class="application-form" id="pf" style="margin-top:16px"><div class="form-grid">
+<label>কোন মাসের চাঁদা<select id="pm"></select></label>
+<label>টাকার পরিমাণ<input type="number" id="pa" min="1" required></label>
+<label>মাধ্যম<select id="pmeth"><option>বিকাশ</option><option>নগদ</option></select></label>
+<label>TrxID<input id="pt" required maxlength="40" placeholder="মেসেজে থাকা TrxID"></label>
+<label>যে নম্বর থেকে পাঠিয়েছেন<input id="ps" inputmode="tel" maxlength="25"></label>
+<label>নোট (ঐচ্ছিক)<input id="pn" maxlength="200"></label></div>
+<button class="button button-primary" type="submit">আবেদন পাঠান</button><p class="form-note" id="pmsg">টাকা পাঠানোর পরেই শুধু আবেদন করুন।</p></form>
+<h4 class="lab">আমার আবেদন</h4><div id="claims"></div>
+<h4 class="lab">আমার জমা ও রসিদ</h4><div id="pays"></div></div>
+<script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+function stat(cls,v,l){const d=document.createElement('div');d.className='stat '+cls;d.innerHTML='<b></b><small></small>';d.children[0].textContent=v;d.children[1].textContent=l;$('top').appendChild(d);}
+async function load(){
+ const d=await rpc('member_me',{p_token:tk});if(!d){sessionStorage.removeItem('mtk');location.href='member-login.html';return;}
+ const M=d.member,ok=M.status==='approved';const cl=(await rpc('member_claims',{p_token:tk}))||[];
+ if(!ok){$('pf').style.display='none';}
+ const n=new Date(),paid=new Set(d.payments.map(p=>p.month));$('pm').innerHTML='';let first=null;
+ for(let i=0;i<6;i++){const x=new Date(n.getFullYear(),n.getMonth()-i,1);const m=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');
+  const o=document.createElement('option');o.value=m;o.textContent=m+(paid.has(m)?' (জমা আছে)':'');o.disabled=paid.has(m);$('pm').appendChild(o);if(!first&&!paid.has(m))first=m;}
+ if(first)$('pm').value=first;$('pa').value=M.monthly_amount||'';
+ $('top').innerHTML='';const cm=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
+ stat('blue','৳ '+bn(M.monthly_amount||0),'মাসিক চাঁদা');stat('green',paid.has(cm)?'জমা ✓':'বাকি','এই মাসে');stat('amber',bn(cl.filter(c=>c.status==='pending').length),'যাচাইয়ের অপেক্ষায়');
+ const cb=$('claims');cb.innerHTML='';
+ cl.forEach(c=>{const e=document.createElement('div');e.className='cm';const h=document.createElement('div');h.className='ch';
+  const b=document.createElement('b');b.textContent=c.month+' মাস • ৳ '+bn(c.amount);h.appendChild(b);h.appendChild(tag(c.method,'p'));
+  h.appendChild(tag(c.status==='pending'?'যাচাইয়ের অপেক্ষায়':c.status==='approved'?'গৃহীত ✓':'বাতিল',c.status==='pending'?'y':c.status==='approved'?'g':'r'));
+  const dt=document.createElement('small');dt.textContent=dfmt(c.created_at)+' • '+c.trx_id;dt.style.marginLeft='auto';h.appendChild(dt);e.appendChild(h);
+  if(c.status==='rejected'&&c.reject_reason){const r=document.createElement('div');r.className='reply';r.style.cssText='border-color:#ef4444;background:#2a0a0a;color:#fca5a5';r.textContent='কারণ: '+c.reject_reason;e.appendChild(r);}
+  cb.appendChild(e);});
+ if(!cl.length)cb.textContent='এখনও কোনো আবেদন করা হয়নি।';
+ const pb=$('pays');pb.innerHTML='';
+ d.payments.forEach(p=>{const e=document.createElement('div');e.className='entry paid';const l=document.createElement('div');const b=document.createElement('b');b.textContent=p.month+' মাস';const s=document.createElement('small');s.textContent='জমার তারিখ: '+dfmt(p.created_at);
+  l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);const r=document.createElement('div');r.style.textAlign='right';
+  const a=document.createElement('div');a.className='amt in';a.textContent='৳ '+bn(p.amount);const rc=document.createElement('a');rc.href='receipt.html?m='+p.month;rc.target='_blank';rc.className='button button-outline';rc.textContent='🧾 রসিদ';rc.style.cssText='padding:4px 12px;margin-top:6px;display:inline-block';
+  r.appendChild(a);r.appendChild(rc);e.appendChild(l);e.appendChild(r);pb.appendChild(e);});
+ if(!d.payments.length)pb.textContent='এখনও কোনো জমা লেখা হয়নি।';}
+$('pf').onsubmit=async e=>{e.preventDefault();const m=$('pmsg');m.textContent='পাঠানো হচ্ছে...';
+ const j=await rpc('member_submit_claim',{p_token:tk,p_month:$('pm').value,p_amount:Number($('pa').value),p_method:$('pmeth').value,p_trx:$('pt').value,p_sender:$('ps').value,p_note:$('pn').value});
+ if(j&&j.ok){$('pt').value=$('ps').value=$('pn').value='';m.textContent='আবেদন পাঠানো হয়েছে ✓ অ্যাডমিন যাচাই করলে জমা হবে।';load();}else m.textContent=(j&&j.error)||'পাঠানো যায়নি। আবার চেষ্টা করুন।';};
+load();
+</script>
+</main>
+<footer>
+<div class="footer-brand"><span class="brand-mark">س</span><div><strong>সিরাতুল মুস্তাকিম</strong><p>মানবতার পাশে, কল্যাণের পথে</p></div></div>
+<p class="footer-note">একটি মানবিক ও অরাজনৈতিক উদ্যোগ।</p>
+<div class="footer-bottom"><span>© <span id="year"></span> সিরাতুল মুস্তাকিম</span><a href="index.html">হোমে ফিরে যান</a></div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

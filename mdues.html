@@ -15,6 +15,7 @@ const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()
 const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStart(2,'0');};
 const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
 const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function postRet(p,b){const r=await fetch(URL_+'/rest/v1/'+p,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(b)});if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}return await r.json();}
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
  if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
@@ -28,15 +29,20 @@ function entry(box,x,paid){const e=document.createElement('div');e.className='en
  l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);
  const r=document.createElement('div');r.style.textAlign='right';const a=document.createElement('div');a.className='amt'+(paid?' in':'');a.textContent='৳ '+bn(x.amount);r.appendChild(a);
  if(!paid){const bp=document.createElement('button');bp.textContent='জমা হয়েছে';bp.onclick=()=>markPaid(x);r.appendChild(bp);}
+ if(paid){const bu=document.createElement('button');bu.className='alt';bu.textContent='↩️ ফিরিয়ে নিন';bu.onclick=()=>undoPaid(x);r.appendChild(bu);}
  const bd=document.createElement('button');bd.className='alt red';bd.textContent='মুছুন';
  bd.onclick=async()=>{if(confirm(paid?'ইতিহাস থেকে এই এন্ট্রি মুছে যাবে। নিশ্চিত?':'এই বকেয়া মুছবেন?')){await api('dues?id=eq.'+x.id,{method:'DELETE'});load();}};r.appendChild(bd);
  e.appendChild(l);e.appendChild(r);box.appendChild(e);}
+async function undoPaid(x){if(!confirm(x.month+' মাসের পরিশোধ ফিরিয়ে নেবেন?'+(x.payment_id?' এর জন্য লেখা জমাও বাতিল হবে।':'')))return;
+ if(x.payment_id)await api('payments?id=eq.'+x.payment_id,{method:'DELETE'});
+ await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:false,paid_on:null,payment_id:null})});load();}
 async function markPaid(x){
+ let pid=null;
  const ex=await api('payments?select=id&member_id=eq.'+MID+'&month=eq.'+x.month)||[];
  if(ex.length){if(!confirm(x.month+' মাসের জমা আগেই লেখা আছে। শুধু বকেয়াটা পরিশোধিত হিসেবে চিহ্নিত করবেন?'))return;}
  else{const v=prompt(x.month+' মাসের বকেয়া জমার পরিমাণ (টাকা)',x.amount);if(v===null)return;
-  await api('payments',{method:'POST',body:JSON.stringify({member_id:MID,month:x.month,amount:Number(v)})});}
- await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:today()})});load();}
+  const rr=await postRet('payments',{member_id:MID,month:x.month,amount:Number(v)});pid=rr&&rr[0]?rr[0].id:null;}
+ await api('dues?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({paid:true,paid_on:today(),payment_id:pid})});load();}
 async function load(){
  if(!/^[0-9a-f-]{36}$/.test(MID)){document.body.textContent='ভুল ঠিকানা';return;}
  const rows=await api('members?select=id,name,phone,monthly_amount,photo&id=eq.'+MID);M=rows&&rows[0];if(!M){document.body.textContent='সদস্য পাওয়া যায়নি।';return;}

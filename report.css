@@ -1,0 +1,21 @@
+body{margin:0;background:#e5e7eb;font-family:system-ui,"Noto Sans Bengali","Nirmala UI",sans-serif;color:#111827}
+.tool{max-width:794px;margin:14px auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:0 10px}
+.tool button{background:#15803d;color:#fff;border:0;padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer}
+.tool button.alt{background:#fff;color:#15803d;border:1px solid #15803d}.tool a{color:#1d4ed8}
+.sheet{width:794px;max-width:100%;box-sizing:border-box;margin:0 auto 30px;background:#fff;padding:34px;color:#111827}
+.rh{display:flex;gap:16px;align-items:center;border-bottom:3px solid #15803d;padding-bottom:14px}
+.rh img{width:84px;height:84px;border-radius:50%}.rh h1{margin:0;font-size:24px;color:#14532d}.rh div div{font-size:17px;font-weight:700;margin-top:2px}.rh small{color:#4b5563}
+.pinfo{display:flex;gap:18px;margin-top:18px;align-items:flex-start}
+.rphoto{width:120px;height:120px;border-radius:14px;border:2px solid #15803d;background:#ecfdf5 center/cover;display:grid;place-items:center;font-size:48px;font-weight:800;color:#15803d;flex:none}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;flex:1}.g div{font-size:15px}.g b{color:#374151;font-weight:600}
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.sg div{border:1px solid #d1d5db;border-radius:12px;padding:10px;text-align:center;background:#f9fafb}.sg b{display:block;font-size:20px}.sg small{color:#4b5563}
+.sg .r b{color:#b91c1c}.sg .g2 b{color:#15803d}.sg .b b{color:#1d4ed8}
+h3{margin:20px 0 6px;font-size:17px;color:#14532d;border-left:5px solid #15803d;padding-left:8px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{border:1px solid #d1d5db;padding:6px 8px;text-align:left}th{background:#ecfdf5}
+.foot{margin-top:24px;font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:8px}
+.rtitle{text-align:center;font-size:22px;font-weight:800;margin:20px 0 14px;color:#14532d;letter-spacing:.5px}
+.rt td{font-size:16px;padding:10px}.rt td:first-child{width:38%;background:#f0fdf4;font-weight:600}
+.amt{font-size:28px;font-weight:800;color:#15803d}
+.stamp{display:inline-block;margin-top:18px;border:3px solid #15803d;color:#15803d;font-weight:800;padding:6px 18px;border-radius:10px;transform:rotate(-4deg);font-size:20px}
+@media print{body{background:#fff}.tool{display:none}.sheet{margin:0;padding:14px;width:auto}}

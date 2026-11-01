@@ -18,7 +18,7 @@ document.querySelectorAll('.brand-mark').forEach(el => {
 });
 const MT = sessionStorage.getItem('mtk');
 const PAGE = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
-const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile', 'my-dues', 'feedback'];
+const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile', 'my-dues', 'feedback', 'pay', 'notice-board'];
 if (PRIVATE_PAGES.includes(PAGE) && !MT) { document.body.style.display = 'none'; location.replace('member-login.html'); }
 if (PAGE === 'index' && MT) location.replace('dashboard.html');
 if (nav) {
@@ -133,3 +133,19 @@ document.querySelectorAll('.payment-card').forEach(card => {
     tag.insertAdjacentElement('afterend', how);
   }
 });
+
+// ফাউন্ডেশন নাম
+document.title = document.title.replace('সিরাতুল মুস্তাকিম', 'সিরাতুল মুস্তাকিম ফাউন্ডেশন');
+document.querySelectorAll('.brand strong, .footer-brand strong').forEach(e => { e.textContent = 'সিরাতুল মুস্তাকিম ফাউন্ডেশন'; });
+document.querySelectorAll('.brand small').forEach(e => { e.textContent = 'মানবতার পাশে, অসহায়দের জন্য'; });
+
+// ফোনে অ্যাপের মতো ইনস্টল (PWA)
+const mfl = document.createElement('link'); mfl.rel = 'manifest'; mfl.href = 'manifest.json'; document.head.appendChild(mfl);
+const atl = document.createElement('link'); atl.rel = 'apple-touch-icon'; atl.href = 'icon-192.png'; document.head.appendChild(atl);
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+let installEv = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEv = e; });
+window.installApp = async () => {
+  if (installEv) { installEv.prompt(); installEv = null; }
+  else alert('ফোনে ইনস্টল করতে ব্রাউজারের মেনু (⋮ বা শেয়ার বোতাম) থেকে "হোম স্ক্রিনে যোগ করুন" বা "Install app" বেছে নিন।');
+};

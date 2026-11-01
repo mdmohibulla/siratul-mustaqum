@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>চাঁদার রসিদ | সিরাতুল মুস্তাকিম ফাউন্ডেশন</title><link rel="stylesheet" href="report.css"></head><body>
+<div class="tool"><button id="dl">📥 ডাউনলোড</button><button id="pr" class="alt">🖨️ প্রিন্ট</button><a href="pay.html">← ফিরে যান</a><span id="st"></span></div>
+<div class="sheet" id="report"><div class="rh"><img src="logo.png" alt=""><div><h1>সিরাতুল মুস্তাকিম ফাউন্ডেশন</h1><div>মানবতার পাশে, অসহায়দের জন্য</div></div></div>
+<div class="rtitle">চাঁদা প্রাপ্তি রসিদ</div><table class="rt" id="rt"></table>
+<div style="text-align:right"><span class="stamp">✓ আদায়কৃত</span></div>
+<div class="foot">এই রসিদটি সংগঠনের অনলাইন হিসাব থেকে তৈরি। বিস্তারিত জানতে সংগঠনের দায়িত্বশীলের সঙ্গে যোগাযোগ করুন।</div></div>
+<script src="pdfutil.js"></script>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);const tk=sessionStorage.getItem('mtk');const bn=n=>Number(n).toLocaleString('bn-BD');const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function rpc(n,b){try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+if(!tk)location.replace('member-login.html');
+
+const MON=new URLSearchParams(location.search).get('m')||'';let FN='receipt.pdf';
+function row(a,b,cls){const tr=document.createElement('tr');const t1=document.createElement('td');t1.textContent=a;const t2=document.createElement('td');t2.textContent=b;if(cls)t2.className=cls;tr.appendChild(t1);tr.appendChild(t2);$('rt').appendChild(tr);}
+(async()=>{const d=await rpc('member_me',{p_token:tk});if(!d){location.replace('member-login.html');return;}
+ const p=d.payments.find(x=>x.month===MON);if(!p){$('st').textContent='এই মাসের জমা পাওয়া যায়নি।';$('report').style.display='none';$('dl').style.display='none';return;}
+ const M=d.member;row('রসিদ নং','SMF-'+String(p.id).slice(0,8).toUpperCase());row('তারিখ',dfmt(p.created_at));row('সদস্যের নাম',M.name);row('মোবাইল',M.phone);row('চাঁদার মাস',p.month);row('পরিমাণ','৳ '+bn(p.amount),'amt');
+ FN='receipt-'+p.month+'.pdf';})();
+$('dl').onclick=async()=>{$('st').textContent='তৈরি হচ্ছে...';try{await savePdf($('report'),FN);$('st').textContent='ডাউনলোড হয়েছে ✓';}catch(e){$('st').textContent=e.message+' — "প্রিন্ট" চেপে "Save as PDF" বেছে নিন।';}};
+
+$('pr').onclick=()=>window.print();
+</script></body></html>

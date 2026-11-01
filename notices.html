@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>নোটিশ বোর্ড | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>নোটিশ বোর্ড</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="card"><h3>📢 নতুন নোটিশ</h3><div class="fg">
+<label>শিরোনাম<input id="n_t" maxlength="150" placeholder="যেমন: রবিবার মাসিক সভা"></label>
+<label>ধরন<select id="n_k"><option>সাধারণ</option><option>জরুরি</option></select></label>
+<label>মেয়াদ শেষ (ঐচ্ছিক)<input type="date" id="n_e"></label></div>
+<label>বিস্তারিত<textarea id="n_b" rows="3" maxlength="1500" style="width:100%;box-sizing:border-box;margin:6px 0;background:#020617;color:#fff;border:1px solid #334155;border-radius:10px;padding:10px"></textarea></label>
+<label style="display:block;margin:6px 0"><input type="checkbox" id="n_p" style="width:auto"> 📌 ওপরে আটকে রাখুন (সদস্যের হোম পেজেও দেখাবে)</label>
+<button id="n_s">নোটিশ প্রকাশ করুন</button></div>
+<div id="list"></div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function postRet(p,b){const r=await fetch(URL_+'/rest/v1/'+p,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(b)});
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}return await r.json();}
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+async function load(){const rows=await api('notices?select=*&order=pinned.desc,created_at.desc&limit=100')||[];const box=$('list');box.innerHTML='';
+ rows.forEach(x=>{const c=document.createElement('div');c.className='cm';const h=document.createElement('div');h.className='ch';
+  const t=document.createElement('b');t.textContent=x.title;t.style.color='#fff';h.appendChild(t);h.appendChild(tag(x.kind,x.kind==='জরুরি'?'r':'b'));if(x.pinned)h.appendChild(tag('📌 আটকানো','y'));
+  const expired=x.expires_on&&x.expires_on<today();if(expired)h.appendChild(tag('মেয়াদ শেষ','p'));
+  const dt=document.createElement('small');dt.textContent=new Date(x.created_at).toLocaleDateString('bn-BD')+(x.expires_on?' • মেয়াদ: '+new Date(x.expires_on).toLocaleDateString('bn-BD'):'');dt.style.marginLeft='auto';h.appendChild(dt);c.appendChild(h);
+  if(x.body){const p=document.createElement('p');p.textContent=x.body;p.style.cssText='white-space:pre-wrap;margin:8px 0';c.appendChild(p);}
+  const b1=document.createElement('button');b1.className='alt';b1.textContent=x.pinned?'আটকানো সরান':'📌 আটকান';b1.style.cssText='margin:8px 8px 0 0;padding:6px 12px;font-size:13px';
+  b1.onclick=async()=>{await api('notices?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({pinned:!x.pinned})});load();};
+  const b2=document.createElement('button');b2.className='alt red';b2.textContent='মুছুন';b2.style.cssText='margin:8px 0 0;padding:6px 12px;font-size:13px';
+  b2.onclick=async()=>{if(confirm('এই নোটিশ মুছবেন?')){await api('notices?id=eq.'+x.id,{method:'DELETE'});load();}};
+  c.appendChild(b1);c.appendChild(b2);box.appendChild(c);});
+ if(!rows.length)box.textContent='এখনও কোনো নোটিশ নেই।';}
+$('n_s').onclick=async()=>{const t=$('n_t').value.trim();if(!t){alert('শিরোনাম দিন।');return;}
+ await api('notices',{method:'POST',body:JSON.stringify({title:t,body:$('n_b').value.trim()||null,kind:$('n_k').value,pinned:$('n_p').checked,expires_on:$('n_e').value||null})});
+ $('n_t').value=$('n_b').value=$('n_e').value='';$('n_p').checked=false;load();};
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>

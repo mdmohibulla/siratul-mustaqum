@@ -17,7 +17,7 @@
 </nav>
 </header>
 <main>
-<div class="wrapx"><img id="gp" class="gp" alt="" style="display:none"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p><div id="rem"></div><div id="duebox"></div>
+<div class="wrapx"><div id="nb"></div><img id="gp" class="gp" alt="" style="display:none"><h1 class="greet">স্বাগতম, <span id="gn">...</span> 👋</h1><p id="gs"></p><div id="rem"></div><div id="duebox"></div>
 <h4 class="lab">আমার চাঁদা</h4>
 <div class="stat-grid"><div class="stat blue"><b id="d1">–</b><small>মাসিক চাঁদা</small></div><div class="stat green"><b id="d2">–</b><small>এই মাসে</small></div><div class="stat purple"><b id="d3">–</b><small>মোট জমা</small></div></div>
 <h4 class="lab">সংগঠন</h4>
@@ -27,8 +27,13 @@
 <a class="tile purple" href="reports.html"><span>📊</span><b>হিসাব ও রিপোর্ট</b><small>অনুদান ও ব্যয়ের হিসাব</small></a>
 <a class="tile amber" href="about.html"><span>ℹ️</span><b>আমাদের পরিচয়</b><small>লক্ষ্য ও মূল্যবোধ</small></a>
 <a class="tile pink" href="donate.html"><span>💚</span><b>অনুদান</b><small>সহযোগিতার নম্বর</small></a>
+<a class="tile green" href="pay.html"><span>💳</span><b>চাঁদা জমা দিন</b><small>আবেদন ও রসিদ</small></a>
+<a class="tile amber" href="notice-board.html"><span>📢</span><b>নোটিশ বোর্ড</b><small>ঘোষণা ও খবর</small></a>
 <a class="tile red" href="my-dues.html"><span>💳</span><b>আমার বকেয়া</b><small>বকেয়া ও ইতিহাস</small></a>
 <a class="tile lime" href="feedback.html"><span>💬</span><b>মতামত</b><small>মন্তব্য ও পরামর্শ</small></a>
+<a class="tile purple" href="id-card.html"><span>🪪</span><b>আইডি কার্ড</b><small>ডাউনলোড করুন</small></a>
+<a class="tile blue" href="my-report.html"><span>📄</span><b>আমার রিপোর্ট</b><small>চাঁদার PDF</small></a>
+<a class="tile pink" href="#" onclick="installApp();return false"><span>📲</span><b>অ্যাপ ইনস্টল</b><small>ফোনের হোম স্ক্রিনে</small></a>
 <a class="tile cyan" href="profile.html"><span>👤</span><b>আমার প্রোফাইল</b><small>তথ্য ও পাসওয়ার্ড</small></a>
 </div></div>
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
@@ -70,7 +75,9 @@ function dueList(d){const L=(d.dues||[]).filter(x=>!x.paid);if(!L.length)return;
  $('gs').textContent=ok?'সক্রিয় সদস্য ✓':'আপনার আবেদন অনুমোদনের অপেক্ষায় আছে।';
  if(ok){const n=new Date(),cm=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');
   $('d1').textContent='৳ '+bn(M.monthly_amount);$('d2').textContent=d.payments.some(p=>p.month===cm)?'জমা ✓':'বাকি';
-  $('d3').textContent='৳ '+bn(d.payments.reduce((s,p)=>s+Number(p.amount),0));reminder(M,d);dueList(d);}})();</script>
+  $('d3').textContent='৳ '+bn(d.payments.reduce((s,p)=>s+Number(p.amount),0));reminder(M,d);dueList(d);}})();
+(async()=>{try{const r=await fetch(URL_+'/rest/v1/rpc/member_notices',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_token:tk})});const L=r.ok?await r.json():[];
+ (L||[]).filter(x=>x.pinned||x.kind==='জরুরি').slice(0,2).forEach(x=>{const a=document.createElement('a');a.href='notice-board.html';a.className='nbn '+(x.kind==='জরুরি'?'red':'blue');const b=document.createElement('b');b.textContent=(x.kind==='জরুরি'?'🚨 ':'📌 ')+x.title;a.appendChild(b);if(x.body){const p=document.createElement('div');p.textContent=x.body.length>120?x.body.slice(0,120)+'…':x.body;a.appendChild(p);}$('nb').appendChild(a);});}catch(e){}})();</script>
 </main>
 <footer>
 <div class="footer-brand"><span class="brand-mark">س</span><div><strong>সিরাতুল মুস্তাকিম</strong><p>মানবতার পাশে, কল্যাণের পথে</p></div></div>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>চাঁদা জমার আবেদন | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>চাঁদা জমার আবেদন</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<p style="color:#fbbf24">সদস্যের দেওয়া TrxID নিজের বিকাশ/নগদ অ্যাপে মিলিয়ে দেখে তবেই "জমা নিন" চাপুন।</p>
+<div class="bar"><button id="f_pending" class="on">অপেক্ষায়</button><button id="f_approved" class="alt">গৃহীত</button><button id="f_rejected" class="alt">বাতিল</button><button id="f_all" class="alt">সব</button></div>
+<div id="list"></div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function postRet(p,b){const r=await fetch(URL_+'/rest/v1/'+p,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(b)});
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}return await r.json();}
+let ROWS=[],F='pending';
+function tag(t,cls){const s=document.createElement('span');s.className='tg '+cls;s.textContent=t;return s;}
+async function approve(x){
+ const v=prompt('জমার পরিমাণ নিশ্চিত করুন (টাকা)',x.amount);if(v===null||!(Number(v)>0))return;
+ const ex=await api('payments?select=id&member_id=eq.'+x.member_id+'&month=eq.'+x.month)||[];let pid=null;
+ if(ex.length){if(!confirm(x.month+' মাসের জমা আগেই লেখা আছে। শুধু আবেদনটা গৃহীত চিহ্নিত করবেন?'))return;}
+ else{const r=await postRet('payments',{member_id:x.member_id,month:x.month,amount:Number(v)});pid=r&&r[0]?r[0].id:null;}
+ try{await fetch(URL_+'/rest/v1/dues?member_id=eq.'+x.member_id+'&month=eq.'+x.month+'&paid=eq.false',{method:'PATCH',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({paid:true,paid_on:today(),payment_id:pid})});}catch(e){}
+ await api('payment_claims?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({status:'approved',reviewed_at:new Date().toISOString()})});load();}
+function draw(){['pending','approved','rejected','all'].forEach(k=>{$('f_'+k).className=F===k?'on':'alt';});
+ const L=ROWS.filter(x=>F==='all'||x.status===F);const box=$('list');box.innerHTML='';
+ L.forEach(x=>{const c=document.createElement('div');c.className='cm'+(x.status==='pending'?' new':'');
+  const h=document.createElement('div');h.className='ch';const nm=document.createElement('a');nm.href='mprofile.html?id='+x.member_id;nm.textContent=(x.members&&x.members.name)||'সদস্য';nm.style.fontWeight='700';h.appendChild(nm);
+  h.appendChild(tag(x.month+' মাস','b'));h.appendChild(tag(x.method,'p'));
+  h.appendChild(tag(x.status==='pending'?'অপেক্ষায়':x.status==='approved'?'গৃহীত ✓':'বাতিল',x.status==='pending'?'y':x.status==='approved'?'g':'r'));
+  const dt=document.createElement('small');dt.textContent=new Date(x.created_at).toLocaleString('bn-BD');dt.style.marginLeft='auto';h.appendChild(dt);c.appendChild(h);
+  const p=document.createElement('p');p.style.margin='8px 0';p.textContent='৳ '+bn(x.amount)+' • TrxID: '+x.trx_id+(x.sender_number?' • প্রেরক: '+x.sender_number:'')+(x.note?' • '+x.note:'')+((x.members&&x.members.phone)?' • সদস্যের ফোন: '+x.members.phone:'');c.appendChild(p);
+  if(x.status==='rejected'&&x.reject_reason){const r=document.createElement('div');r.className='reply';r.style.borderColor='#ef4444';r.style.background='#2a0a0a';r.textContent='কারণ: '+x.reject_reason;c.appendChild(r);}
+  if(x.status==='pending'){const b1=document.createElement('button');b1.textContent='✅ যাচাই করে জমা নিন';b1.onclick=()=>approve(x);b1.style.cssText='margin:8px 8px 0 0';
+   const b2=document.createElement('button');b2.className='alt red';b2.textContent='❌ বাতিল';b2.style.cssText='margin:8px 0 0';
+   b2.onclick=async()=>{const why=prompt('বাতিলের কারণ (সদস্য দেখতে পাবেন)','TrxID মেলেনি');if(why===null)return;await api('payment_claims?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({status:'rejected',reject_reason:why.trim()||null,reviewed_at:new Date().toISOString()})});load();};
+   c.appendChild(b1);c.appendChild(b2);}
+  box.appendChild(c);});
+ if(!L.length)box.textContent='কোনো আবেদন নেই।';}
+async function load(){ROWS=await api('payment_claims?select=*,members(name,phone)&order=created_at.desc&limit=300')||[];draw();}
+['pending','approved','rejected','all'].forEach(k=>{$('f_'+k).onclick=()=>{F=k;draw();};});
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>
