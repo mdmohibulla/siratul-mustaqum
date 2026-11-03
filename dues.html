@@ -3,6 +3,12 @@
 <header><strong>বকেয়া ড্যাশবোর্ড</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
+<div class="card"><h3>⚙️ অটো বকেয়া</h3>
+<p style="color:#cbd5e1;margin:4px 0 10px">যে সদস্য কোনো মাসের চাঁদা দেননি, সেই মাসের বকেয়া নিজে থেকে যোগ হবে। চাঁদা জমা লিখলে বকেয়াও নিজে থেকে পরিশোধিত হয়ে যায়। আপনি বকেয়া মুছে দিলে ওই মাস আর নিজে থেকে যোগ হবে না।</p>
+<div class="fg"><label>শুরুর মাস<input type="month" id="as_st"></label>
+<label>কখন বকেয়া ধরা হবে<select id="as_md"><option value="month_end">মাস শেষ হলে</option><option value="after_deadline">১০ তারিখ পার হলে</option></select></label></div>
+<label style="display:block;margin:8px 0"><input type="checkbox" id="as_en" style="width:auto"> অটো বকেয়া চালু</label>
+<button id="as_save">সংরক্ষণ করুন</button> <button id="as_run" class="alt">এখনই চালান</button></div>
 <div class="dash" id="top"></div>
 <div class="bar" style="margin-top:14px"><button id="f_due" class="on">বাকি আছে</button><button id="f_all" class="alt">সব (ইতিহাসসহ)</button><input id="q" placeholder="নাম বা ফোন খুঁজুন" style="flex:1;min-width:160px"></div>
 <div class="dash" id="grid"></div></div></main>
@@ -35,7 +41,15 @@ function draw(){const q=$('q').value.trim().toLowerCase();$('f_due').className=F
   const l2=document.createElement('small');l2.textContent='পরিশোধিত ৳ '+bn(sum(e.pd))+' • '+bn(e.pd.length)+' মাস';
   [av,nm,ph,l1,l2].forEach(x=>a.appendChild(x));g.appendChild(a);});
  if(!n)g.textContent=F==='due'?'কারও বকেয়া নেই 🎉':'কোনো তথ্য নেই।';}
-async function load(){ML=await api('members?select=id,name,phone&active=eq.true&order=name')||[];DL=await allDues('&order=month.desc');draw();}
+async function runAuto(){try{const r=await fetch(URL_+'/rest/v1/rpc/auto_generate_dues',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}'});return r.ok?await r.json():null;}catch(e){return null;}}
+async function loadSettings(){try{const r=await fetch(URL_+'/rest/v1/app_settings?select=*',{headers:{apikey:KEY,Authorization:'Bearer '+token}});const rows=r.ok?await r.json():[];const m={};rows.forEach(x=>m[x.key]=x.value);
+ $('as_en').checked=m.auto_dues_enabled!=='false';$('as_st').value=m.auto_dues_start||'';$('as_md').value=m.auto_dues_mode||'month_end';}catch(e){}}
+$('as_save').onclick=async()=>{if(!$('as_st').value){alert('শুরুর মাস দিন।');return;}
+ const rows=[{key:'auto_dues_enabled',value:String($('as_en').checked)},{key:'auto_dues_start',value:$('as_st').value},{key:'auto_dues_mode',value:$('as_md').value}];
+ const r=await fetch(URL_+'/rest/v1/app_settings?on_conflict=key',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(rows)});
+ alert(r.ok?'সেটিং সংরক্ষণ হয়েছে ✓':'সংরক্ষণ হয়নি: '+await r.text());};
+$('as_run').onclick=async()=>{const n=await runAuto();alert(n===null?'চালানো যায়নি। SQL সেটআপ চালানো হয়েছে কি না দেখুন।':n+'টি নতুন বকেয়া যোগ হয়েছে।');load();};
+async function load(){await runAuto();ML=await api('members?select=id,name,phone&active=eq.true&order=name')||[];DL=await allDues('&order=month.desc');draw();}
 $('f_due').onclick=()=>{F='due';draw();};$('f_all').onclick=()=>{F='all';draw();};$('q').oninput=draw;
-if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+if(token){$('app').classList.remove('hide');loadSettings();load();}else $('need').classList.remove('hide');
 </script></body></html>

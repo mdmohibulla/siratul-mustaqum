@@ -41,7 +41,8 @@ async function login(){$('msg').textContent='';
   sessionStorage.setItem('tk',j.access_token);location.reload();
  }catch(e){$('msg').textContent='সংযোগে সমস্যা: '+e.message;}}
 function logout(){sessionStorage.removeItem('tk');location.reload();}
-async function counts(){try{
+async function counts(){
+ try{await fetch(URL_+'/rest/v1/rpc/auto_generate_dues',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}'});}catch(e){}try{
  const [m,r,d,p]=await Promise.all([api('members?select=id,status&active=eq.true'),api('help_requests?select=id'),api('donations?select=id,verified'),api('payments?select=amount,member_id&month=eq.'+cur())]);
  $('n_mem').textContent=bn(m.filter(x=>x.status==='approved').length);$('n_pen').textContent=bn(m.filter(x=>x.status==='pending').length);
  $('n_req').textContent=bn(r.length);$('n_don').textContent=bn(d.filter(x=>!x.verified).length);

@@ -49,7 +49,9 @@ async function loadPending(){
   b('বাতিল','alt red',async()=>{if(confirm(m.name+' এর আবেদন বাতিল করবেন?')){await api('members?id=eq.'+m.id,{method:'DELETE'});load();}});
   box.appendChild(d);});
 }
+async function runAuto(){try{await fetch(URL_+'/rest/v1/rpc/auto_generate_dues',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}'});}catch(e){}}
 async function load(){
+ await runAuto();
  loadPending();
  const mon=$('mon').value;
  const ms=await api('members?select=id,name,phone,monthly_amount,status&active=eq.true&status=eq.approved&order=name')||[];
