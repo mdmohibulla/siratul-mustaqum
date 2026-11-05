@@ -1,13 +1,31 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>ব্যাকআপ | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>ব্যাকআপ | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"><style>
+#pdfroot{position:absolute;left:-10000px;top:0;width:794px}
+.pg{width:794px;height:1123px;box-sizing:border-box;padding:30px 34px;background:#fff;color:#111827;position:relative;font-family:system-ui,"Noto Sans Bengali","Nirmala UI",sans-serif;overflow:hidden}
+.pg .ph{display:flex;align-items:center;gap:12px;border-bottom:3px solid #15803d;padding-bottom:10px}
+.pg .ph img{width:56px;height:56px;border-radius:50%}.pg .ph b{display:block;font-size:19px;color:#14532d}.pg .ph small{color:#4b5563}
+.pg h2{margin:14px 0 8px;font-size:20px;color:#14532d;border-left:5px solid #15803d;padding-left:8px}
+.pg .pb{height:880px;overflow:hidden}
+.pg table{width:100%;min-width:0;border-collapse:collapse;font-size:12.5px;color:#111827}
+.pg th,.pg td{border:1px solid #d1d5db;padding:5px 7px;text-align:left;vertical-align:top;word-break:break-word;font-size:12.5px;color:#111827}
+.pg th{background:#ecfdf5;color:#14532d}
+.pg .pf{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-size:12px;color:#6b7280}
+.pg .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}
+.pg .sg div{border:1px solid #d1d5db;border-radius:12px;padding:14px;text-align:center;background:#f9fafb}
+.pg .sg b{display:block;font-size:22px}.pg .sg small{color:#4b5563;font-size:13px}
+.pg .sg .r b{color:#b91c1c}.pg .sg .g b{color:#15803d}.pg .sg .b b{color:#1d4ed8}
+.pg .note{margin-top:18px;color:#6b7280;font-size:13px;line-height:1.7}
+</style></head><body>
 <header><strong>ব্যাকআপ</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
 <div class="dash sm"><div class="dcard green" id="bj" style="cursor:pointer"><span>💾</span><b>সব তথ্য</b><small>JSON ফাইলে ডাউনলোড</small></div>
-<div class="dcard cyan" id="bc" style="cursor:pointer"><span>📑</span><b>CSV</b><small>টেবিল ধরে আলাদা ফাইল</small></div></div>
+<div class="dcard cyan" id="bc" style="cursor:pointer"><span>📑</span><b>CSV</b><small>টেবিল ধরে আলাদা ফাইল</small></div>
+<div class="dcard purple" id="bp" style="cursor:pointer"><span>📄</span><b>PDF</b><small>সব তথ্য PDF আকারে</small></div></div>
 <label style="display:block;margin:14px 0"><input type="checkbox" id="ph" style="width:auto"> সদস্যদের ছবিসহ (ফাইল বড় হবে)</label>
 <p id="last" style="color:#cbd5e1"></p><p id="st" style="color:#fbbf24"></p>
 <p style="color:#94a3b8">সপ্তাহে একবার ব্যাকআপ নিয়ে ফাইলটা নিজের কম্পিউটার বা Google Drive-এ রাখুন। পাসওয়ার্ডের তথ্য ব্যাকআপে থাকে না।</p></div></main>
+<script src="pdfutil.js"></script>
 <script>
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
@@ -28,6 +46,66 @@ function save(name,text,type){const a=document.createElement('a');a.href=URL.cre
 function mark(){localStorage.setItem('lastBackup',String(Date.now()));show();}
 function show(){const l=localStorage.getItem('lastBackup');$('last').textContent=l?'শেষ ব্যাকআপ: '+new Date(Number(l)).toLocaleString('bn-BD'):'এখনও ব্যাকআপ নেওয়া হয়নি।';}
 const q=v=>{let s=typeof v==='object'&&v!==null?JSON.stringify(v):String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+const BN=n=>Number(n).toLocaleString('bn-BD');
+const DF=d=>d?new Date(d).toLocaleDateString('bn-BD'):'—';
+const TR=(v,n)=>{v=String(v??'').replace(/\s+/g,' ').trim();return v.length>n?v.slice(0,n-1)+'…':(v||'—');};
+const SM=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
+async function pdfAll(){
+ const st=$('st');st.textContent='তথ্য আনা হচ্ছে...';let root=null;
+ try{
+  const o=await collect();
+  if(!window.jspdf)await _ls('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');await _h2c();
+  await new Promise(r=>{const i=new Image();i.onload=i.onerror=r;i.src='logo.png';});
+  const doc=new window.jspdf.jsPDF('p','pt','a4');const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight();
+  root=document.createElement('div');root.id='pdfroot';document.body.appendChild(root);
+  let PN=0,firstShot=true;
+  const mem={};(o.members||[]).forEach(m=>mem[m.id]=m.name);
+  function newPage(title){const d=document.createElement('div');d.className='pg';
+   const h=document.createElement('div');h.className='ph';h.innerHTML='<img src="logo.png" alt=""><div><b>সিরাতুল মুস্তাকিম ফাউন্ডেশন</b><small></small></div>';
+   h.querySelector('small').textContent='সংগঠনের তথ্য ব্যাকআপ • '+new Date().toLocaleDateString('bn-BD');
+   const t=document.createElement('h2');t.textContent=title;const b=document.createElement('div');b.className='pb';const f=document.createElement('div');f.className='pf';f.textContent='পাতা '+BN(++PN);
+   d.appendChild(h);d.appendChild(t);d.appendChild(b);d.appendChild(f);root.appendChild(d);return d;}
+  async function shot(el){st.textContent='PDF তৈরি হচ্ছে... পাতা '+BN(PN);
+   const cv=await html2canvas(el,{scale:1.6,backgroundColor:'#ffffff',useCORS:true,windowWidth:794});
+   if(!firstShot)doc.addPage();firstShot=false;doc.addImage(cv.toDataURL('image/jpeg',0.88),'JPEG',0,0,pw,ph);root.removeChild(el);}
+  // সারাংশের পাতা
+  const un=(o.dues||[]).filter(x=>!x.paid),ch=SM(o.payments||[]),dn=SM((o.donations||[]).filter(x=>x.verified)),ot=SM((o.ledger||[]).filter(x=>x.kind==='income')),ex=SM((o.ledger||[]).filter(x=>x.kind==='expense'));
+  const cv0=newPage('সংক্ষিপ্ত সারাংশ');const pb0=cv0.querySelector('.pb');const sg=document.createElement('div');sg.className='sg';
+  [['b',BN((o.members||[]).filter(m=>m.status==='approved').length)+' জন','সক্রিয় সদস্য'],['g','৳ '+BN(ch),'সদস্যদের চাঁদা'],['g','৳ '+BN(dn),'যাচাই করা অনুদান'],['g','৳ '+BN(ot),'অন্যান্য জমা'],
+   ['r','৳ '+BN(ex),'মোট খরচ'],['b','৳ '+BN(ch+dn+ot-ex),'অবশিষ্ট টাকা'],['r','৳ '+BN(SM(un)),'বাকি বকেয়া'],['r',BN(un.length)+' মাস','বাকি বকেয়ার সংখ্যা'],['b',BN((o.help_requests||[]).length)+' টি','সাহায্যের আবেদন']
+  ].forEach(([c,v,l])=>{const d=document.createElement('div');d.className=c;const b=document.createElement('b');b.textContent=v;const s=document.createElement('small');s.textContent=l;d.appendChild(b);d.appendChild(s);sg.appendChild(d);});
+  pb0.appendChild(sg);const nt=document.createElement('div');nt.className='note';nt.textContent='এই ফাইলে সংগঠনের সদস্য, চাঁদা, বকেয়া, অনুদান, হিসাব, কার্যক্রম, আবেদন ও মন্তব্যের সম্পূর্ণ তথ্য আছে। এতে ব্যক্তিগত ও আর্থিক তথ্য থাকায় ফাইলটি নিরাপদ জায়গায় রাখুন এবং অনুমতি ছাড়া কাউকে দেবেন না। পাসওয়ার্ডের তথ্য এতে নেই।';pb0.appendChild(nt);
+  await shot(cv0);
+  const by=(k,dir)=>(a,b)=>String(a[k]||'')<String(b[k]||'')?-dir:String(a[k]||'')>String(b[k]||'')?dir:0;
+  const SPEC=[
+   ['সদস্য তালিকা','members',(o.members||[]).slice().sort(by('name',1)),['নাম','ফোন','ঠিকানা','পেশা','মাসিক','অবস্থা','যোগদান'],r=>[TR(r.name,28),r.phone||'—',TR(r.area,24),TR(r.occupation,18),'৳ '+BN(r.monthly_amount),r.status==='approved'?'সক্রিয়':'অপেক্ষায়',DF(r.joined_on||r.created_at)]],
+   ['চাঁদা জমা','payments',(o.payments||[]).slice().sort(by('month',-1)),['সদস্য','মাস','পরিমাণ','জমার তারিখ'],r=>[TR(mem[r.member_id],30),r.month,'৳ '+BN(r.amount),DF(r.created_at)]],
+   ['বকেয়া','dues',(o.dues||[]).slice().sort(by('month',-1)),['সদস্য','মাস','পরিমাণ','অবস্থা','পরিশোধ','নোট'],r=>[TR(mem[r.member_id],26),r.month,'৳ '+BN(r.amount),r.paid?'পরিশোধিত':'বাকি',r.paid_on?DF(r.paid_on):'—',TR(r.note,40)]],
+   ['অনুদান','donations',(o.donations||[]).slice().sort(by('created_at',-1)),['তারিখ','দাতা','মাধ্যম','পরিমাণ','প্রেরক','TrxID','যাচাই'],r=>[DF(r.created_at),TR(r.donor_name,22),r.method,'৳ '+BN(r.amount),TR(r.sender_number,14),TR(r.trx_id,14),r.verified?'✓':'অপেক্ষায়']],
+   ['হিসাব (জমা ও খরচ)','ledger',(o.ledger||[]).slice().sort(by('entry_date',-1)),['তারিখ','ধরন','বিবরণ','পরিমাণ','নোট'],r=>[DF(r.entry_date),r.kind==='income'?'জমা':'খরচ',TR(r.title,40),'৳ '+BN(r.amount),TR(r.note,40)]],
+   ['কার্যক্রম','activities',(o.activities||[]).slice().sort(by('act_date',-1)),['তারিখ','শিরোনাম','টাকা','বিবরণ'],r=>[DF(r.act_date),TR(r.title,40),r.amount?'৳ '+BN(r.amount):'—',TR(r.details,110)]],
+   ['চাঁদা জমার আবেদন','payment_claims',(o.payment_claims||[]).slice().sort(by('created_at',-1)),['সদস্য','মাস','পরিমাণ','মাধ্যম','TrxID','অবস্থা'],r=>[TR(mem[r.member_id],26),r.month,'৳ '+BN(r.amount),r.method,TR(r.trx_id,16),r.status==='pending'?'অপেক্ষায়':r.status==='approved'?'গৃহীত':'বাতিল']],
+   ['সাহায্যের আবেদন','help_requests',(o.help_requests||[]).slice().sort(by('created_at',-1)),['তারিখ','নাম','ফোন','এলাকা','ধরন','বিবরণ'],r=>[DF(r.created_at),TR(r.name,22),TR(r.phone,14),TR(r.area,20),TR(r.type,14),TR(r.details,110)]],
+   ['নোটিশ','notices',(o.notices||[]).slice().sort(by('created_at',-1)),['তারিখ','শিরোনাম','ধরন','বিবরণ'],r=>[DF(r.created_at),TR(r.title,40),r.kind,TR(r.body,110)]],
+   ['মন্তব্য','comments',(o.comments||[]).slice().sort(by('created_at',-1)),['তারিখ','সদস্য','ধরন','মন্তব্য'],r=>[DF(r.created_at),TR(mem[r.member_id],22),r.kind+(r.is_private?' 🔒':''),TR(r.body,120)]]
+  ];
+  for(const [title,key,rows,head,map] of SPEC){
+   let i=0,first=true;
+   do{
+    const el=newPage(title+' ('+BN(rows.length)+')'+(first?'':' — চলমান'));const pb=el.querySelector('.pb');
+    const tb=document.createElement('table');const hr=document.createElement('tr');head.forEach(h=>{const th=document.createElement('th');th.textContent=h;hr.appendChild(th);});tb.appendChild(hr);pb.appendChild(tb);
+    if(!rows.length){pb.removeChild(tb);const e=document.createElement('div');e.className='note';e.textContent='কোনো তথ্য নেই।';pb.appendChild(e);}
+    let n=0;
+    while(i<rows.length){const tr=document.createElement('tr');map(rows[i]).forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td);});tb.appendChild(tr);
+     if(pb.scrollHeight>pb.clientHeight+1&&n>0){tb.removeChild(tr);break;}i++;n++;}
+    await shot(el);first=false;
+   }while(i<rows.length);
+  }
+  doc.save('backup-'+today()+'.pdf');st.textContent='PDF নামানো হয়েছে ✓ ('+BN(PN)+' পাতা)';mark();
+ }catch(e){st.textContent='PDF হয়নি: '+((e&&e.message)||'আবার চেষ্টা করুন');}
+ if(root&&root.parentNode)root.parentNode.removeChild(root);
+}
+$('bp').onclick=pdfAll;
 $('bj').onclick=async()=>{try{const o=await collect();save('backup-'+today()+'.json',JSON.stringify(o,null,1),'application/json');mark();}catch(e){$('st').textContent='ব্যাকআপ হয়নি';}};
 $('bc').onclick=async()=>{try{const o=await collect();let n=0;for(const k in o){if(k[0]==='_'||!o[k].length)continue;const cols=Object.keys(o[k][0]);
   const lines=[cols.map(q).join(',')].concat(o[k].map(r=>cols.map(c=>q(r[c])).join(',')));save(k+'-'+today()+'.csv','\ufeff'+lines.join('\n'),'text/csv;charset=utf-8');n++;}
