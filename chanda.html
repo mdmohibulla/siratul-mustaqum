@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
+<meta charset="utf-8"><script src="admin-auth.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>মাসিক চাঁদা | সিরাতুল মুস্তাকিম</title>
@@ -28,7 +28,7 @@ const token=sessionStorage.getItem('tk');
 const bn=n=>Number(n).toLocaleString('bn-BD');
 async function api(path,opt={}){
  const r=await fetch(URL_+'/rest/v1/'+path,{...opt,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}
  const t=await r.text();return t?JSON.parse(t):null;
 }

@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>অ্যাডমিন | সিরাতুল মুস্তাকিম</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>অ্যাডমিন | সিরাতুল মুস্তাকিম</title><link rel="stylesheet" href="admin-dark.css"></head><body>
 <header><strong>অ্যাডমিন প্যানেল</strong><button class="alt hide" id="out">লগআউট</button></header><main>
 <div class="box" id="login"><h3>লগইন করুন</h3>
 <label>ইমেইল<input id="em" type="email" autocomplete="username"></label>
 <label>পাসওয়ার্ড<input id="pw" type="password" autocomplete="current-password"></label>
+<label style="display:block;margin:6px 0 12px;color:#cbd5e1"><input type="checkbox" id="arem" checked style="width:auto"> এই ডিভাইসে লগইন মনে রাখুন <small style="color:#94a3b8">(শুধু নিজের ফোন/কম্পিউটারে)</small></label>
 <button id="go">প্রবেশ করুন</button><p id="msg"></p></div>
 <div class="dash hide" id="dash">
 <a class="dcard blue" href="requests.html"><span>📥</span><b id="n_req">–</b><small>সাহায্যের আবেদন</small></a>
@@ -30,7 +31,7 @@ const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJ
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
 const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
 async function login(){$('msg').textContent='';
  try{const r=await fetch(URL_+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email:$('em').value.trim(),password:$('pw').value})});
@@ -38,9 +39,9 @@ async function login(){$('msg').textContent='';
   if(!r.ok||!j.access_token){const raw=j.msg||j.error_description||j.message||j.error||'অজানা কারণ';
    const tip=/not confirmed/i.test(raw)?'ইমেইল নিশ্চিত করা হয়নি।':/invalid login/i.test(raw)?'ইমেইল বা পাসওয়ার্ড মিলছে না।':/rate|too many/i.test(raw)?'অনেকবার চেষ্টা হয়েছে, কিছুক্ষণ পর আবার চেষ্টা করুন।':'';
    $('msg').textContent=tip+' ['+r.status+': '+raw+']';return;}
-  sessionStorage.setItem('tk',j.access_token);location.reload();
+  sessionStorage.setItem('tk',j.access_token);try{if($('arem').checked){localStorage.setItem('tk_rt',j.refresh_token);localStorage.setItem('tk_exp',String(Date.now()+(j.expires_in||3600)*1000));}else{localStorage.removeItem('tk_rt');localStorage.removeItem('tk_exp');}}catch(e){}location.reload();
  }catch(e){$('msg').textContent='সংযোগে সমস্যা: '+e.message;}}
-function logout(){sessionStorage.removeItem('tk');location.reload();}
+function logout(){sessionStorage.removeItem('tk');try{localStorage.removeItem('tk_rt');localStorage.removeItem('tk_exp');}catch(e){}location.reload();}
 async function counts(){
  try{await fetch(URL_+'/rest/v1/rpc/auto_generate_dues',{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:'{}'});}catch(e){}try{
  const [m,r,d,p]=await Promise.all([api('members?select=id,status&active=eq.true'),api('help_requests?select=id'),api('donations?select=id,verified'),api('payments?select=amount,member_id&month=eq.'+cur())]);

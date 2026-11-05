@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>মন্তব্য ও মতামত | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>মন্তব্য ও মতামত | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
 <header><strong>মন্তব্য ও মতামত</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
@@ -10,7 +10,7 @@
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
 let ROWS=[],F='all';
 function mk(p,cls,i,v,l){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=i;d.children[1].textContent=v;d.children[2].textContent=l;p.appendChild(d);}

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 /* ডার্ক থিম — Math Strivers স্টাইল */
 :root{--bg:#020617;--card:#0b1220;--line:#1e293b;--tx:#f1f5f9;--mu:#cbd5e1;--blue:#3b82f6;--sky:#60a5fa}
 html,body{background:var(--bg)!important;color:var(--tx)!important}
@@ -156,3 +157,40 @@ footer .brand-logo{height:72px;width:72px}
 .nbn{display:block;text-decoration:none;border-radius:16px;padding:12px 16px;margin:10px 0;border:1px solid}
 .nbn b{display:block;font-size:17px;color:#fff!important}.nbn div{color:#dbe4f0;font-size:15px;margin-top:2px}
 .nbn.red{background:#2a0a0a;border-color:#b91c1c}.nbn.blue{background:#0a1a3a;border-color:#1e3a8a}
+
+/* ===== প্রফেশনাল পালিশ ===== */
+html{scroll-behavior:smooth}
+body{font-family:'Hind Siliguri','Noto Sans Bengali','Nirmala UI',system-ui,sans-serif!important;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3,h4{letter-spacing:-.2px}
+::selection{background:#2563eb;color:#fff}
+.site-header{position:sticky;top:0;z-index:60;background:rgba(2,6,23,.86)!important;-webkit-backdrop-filter:saturate(160%) blur(14px);backdrop-filter:saturate(160%) blur(14px)}
+nav a:not(.nav-cta){position:relative;transition:color .2s}
+nav a:not(.nav-cta):after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:linear-gradient(90deg,#22c55e,#3b82f6);transform:scaleX(0);transition:transform .25s}
+nav a:not(.nav-cta):hover:after{transform:scaleX(1)}
+.button{font-weight:600;transition:transform .18s,box-shadow .18s,background .18s,border-color .18s}
+.button:hover{transform:translateY(-2px)}
+.button-primary,.button-light{background:linear-gradient(135deg,#3b82f6,#2563eb)!important}
+.button-primary:hover,.button-light:hover{box-shadow:0 10px 28px rgba(59,130,246,.42)}
+.button-outline:hover{border-color:#60a5fa!important;background:rgba(59,130,246,.08)!important}
+:focus-visible{outline:3px solid rgba(96,165,250,.75);outline-offset:2px}
+.hero h1{font-size:clamp(34px,6.2vw,60px)!important;line-height:1.12!important;font-weight:700}
+.hero p{font-size:clamp(16px,2.2vw,19px);line-height:1.85}
+.section-heading{text-align:center;max-width:760px;margin-left:auto;margin-right:auto;margin-bottom:34px}
+.section-heading h2{font-size:clamp(26px,4vw,38px);font-weight:700}
+.section-heading h2:after{content:"";display:block;width:60px;height:4px;border-radius:4px;background:linear-gradient(90deg,#22c55e,#3b82f6);margin:14px auto 0}
+.values-grid.four{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.value-card,.payment-card,.acard,.tile{transition:transform .22s,box-shadow .22s,border-color .22s}
+.value-card:hover,.payment-card:hover,.acard:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(0,0,0,.45);border-color:#334155!important}
+.value-icon{display:inline-grid;place-items:center;width:52px;height:52px;border-radius:16px;font-size:26px}
+.stepno{display:inline-grid;place-items:center;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-weight:700;font-size:21px;margin-bottom:10px}
+.band{max-width:980px;margin:24px auto;padding:36px 26px;border-radius:26px;text-align:center;border:1px solid #1e293b;background:linear-gradient(135deg,#071a12,#0b1220)}
+.band blockquote{margin:0;font-size:clamp(18px,3vw,25px);line-height:1.9;color:#f1f5f9;font-weight:500}
+.band cite{display:block;margin-top:14px;color:#fbbf24;font-style:normal;font-size:15px}
+.band.cta{background:linear-gradient(135deg,#052e16,#0a1a3a);border-color:#14532d}
+.band h2{margin:0 0 8px;font-size:clamp(24px,4vw,34px)}
+.flinks{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin:12px 0}
+.flinks a{color:#93c5fd!important;text-decoration:none}.flinks a:hover{text-decoration:underline}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}}
+*{scrollbar-width:thin;scrollbar-color:#334155 #020617}

@@ -2,24 +2,27 @@
 <html lang="bn">
 <head>
 <meta charset="utf-8">
+<script src="auth.js"></script><style>html,body{background:#020617;color:#e2e8f0}</style>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#123d32">
+<meta name="theme-color" content="#020617">
 <title>সদস্য লগইন | সিরাতুল মুস্তাকিম</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="extra.css">
+<link rel="stylesheet" href="dark.css">
 </head>
 <body>
 <header class="site-header">
 <a class="brand" href="index.html" aria-label="হোম"><span class="brand-mark">س</span><span><strong>সিরাতুল মুস্তাকিম</strong><small>মানবতার পাশে, কল্যাণের পথে</small></span></a>
 <button class="menu-toggle" id="menuToggle" aria-label="মেনু খুলুন" aria-expanded="false">☰</button>
 <nav id="nav">
-<a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="rules.html">নীতিমালা</a><a href="member.html">সদস্য হোন</a><a href="activities.html">কার্যক্রম</a><a href="donate.html">অনুদান</a><a href="reports.html">হিসাব ও রিপোর্ট</a><a class="nav-cta" href="apply.html">সাহায্যের আবেদন</a>
+<a href="index.html">হোম</a><a href="about.html">আমাদের সম্পর্কে</a><a href="rules.html">নীতিমালা</a><a href="activities.html">কার্যক্রম</a><a href="donate.html">অনুদান</a><a href="reports.html">হিসাব ও রিপোর্ট</a><a class="nav-cta" href="apply.html">সাহায্যের আবেদন</a>
 </nav>
 </header>
 <main>
 <section class="section" id="ml"><div class="section-heading"><span class="eyebrow dark">সদস্য এলাকা</span><h2>সদস্য লগইন ও নিবন্ধন</h2><p>মোবাইল নম্বর ও পাসওয়ার্ড দিয়ে লগইন করুন। নিবন্ধনের পর অ্যাডমিন অনুমোদন দিলে আপনার চাঁদার হিসাব দেখতে পারবেন।</p></div>
 <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px"><button class="button button-primary" id="b1" type="button">লগইন</button><button class="button button-outline" id="b2" type="button" style="color:#123d32;border-color:#123d32">নতুন নিবন্ধন</button></div>
-<form class="application-form" id="lf"><div class="form-grid"><label>মোবাইল নম্বর<input id="le" inputmode="tel" required placeholder="01XXXXXXXXX" autocomplete="username"></label><label>পাসওয়ার্ড<input id="lp" type="password" required autocomplete="current-password"></label></div><button class="button button-primary" type="submit">লগইন করুন</button><p class="form-note" id="lm">পাসওয়ার্ড ভুলে গেলে সংগঠনের দায়িত্বশীলের সঙ্গে যোগাযোগ করুন।</p></form>
+<form class="application-form" id="lf"><div class="form-grid"><label>মোবাইল নম্বর<input id="le" inputmode="tel" required placeholder="01XXXXXXXXX" autocomplete="username"></label><label>পাসওয়ার্ড<input id="lp" type="password" required autocomplete="current-password"></label></div><label class="consent"><input type="checkbox" id="lrem" checked> এই ডিভাইসে লগইন মনে রাখুন (বারবার লগইন করতে হবে না)</label>
+<button class="button button-primary" type="submit">লগইন করুন</button><p class="form-note" id="lm">পাসওয়ার্ড ভুলে গেলে সংগঠনের দায়িত্বশীলের সঙ্গে যোগাযোগ করুন।</p></form>
 <form class="application-form" id="rf" style="display:none"><div class="form-grid">
 <label>পূর্ণ নাম<input id="rn" required maxlength="100"></label><label>মোবাইল নম্বর (এটাই আপনার লগইন)<input id="rph" required inputmode="tel" maxlength="25" placeholder="01XXXXXXXXX"></label>
 <label>ঠিকানা (জেলা/উপজেলা)<input id="ra" required maxlength="150"></label><label>পেশা<input id="ro" maxlength="100"></label>
@@ -28,11 +31,12 @@
 <button class="button button-primary" type="submit">নিবন্ধন করুন</button><p class="form-note" id="rm"></p></form></section>
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
 const rpc=async(n,b)=>{try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}};
+if(sessionStorage.getItem('mtk'))location.replace('dashboard.html');
 $('b1').onclick=()=>{$('lf').style.display='';$('rf').style.display='none';};
 $('b2').onclick=()=>{$('rf').style.display='';$('lf').style.display='none';};
-async function doLogin(ph,pw,msg){const j=await rpc('member_login',{p_phone:ph,p_password:pw});
+async function doLogin(ph,pw,msg){const rem=$('lrem')?$('lrem').checked:true;let j=await rpc('member_login',{p_phone:ph,p_password:pw,p_remember:rem});if(!j)j=await rpc('member_login',{p_phone:ph,p_password:pw});
  if(!j||!j.ok){msg.textContent=(j&&j.error)||'সংযোগে সমস্যা, আবার চেষ্টা করুন।';return false;}
- sessionStorage.setItem('mtk',j.token);location.href='dashboard.html';return true;}
+ sessionStorage.setItem('mtk',j.token);try{if(rem)localStorage.setItem('mtk',j.token);else localStorage.removeItem('mtk');}catch(e){}location.href='dashboard.html';return true;}
 $('lf').onsubmit=async e=>{e.preventDefault();$('lm').textContent='অপেক্ষা করুন...';await doLogin($('le').value,$('lp').value,$('lm'));};
 $('rf').onsubmit=async e=>{e.preventDefault();const m=$('rm');m.textContent='অপেক্ষা করুন...';
  const j=await rpc('member_register',{p_phone:$('rph').value,p_password:$('rp').value,p_name:$('rn').value,p_area:$('ra').value,p_occupation:$('ro').value});

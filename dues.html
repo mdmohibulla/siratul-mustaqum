@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>বকেয়া ড্যাশবোর্ড | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>বকেয়া ড্যাশবোর্ড | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
 <header><strong>বকেয়া ড্যাশবোর্ড</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
@@ -20,7 +20,7 @@ const today=()=>{const d=new Date();return cur()+'-'+String(d.getDate()).padStar
 const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);
 const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
- if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
 async function allDues(q){try{const r=await fetch(URL_+'/rest/v1/dues?select=*'+q,{headers:{apikey:KEY,Authorization:'Bearer '+token}});return r.ok?await r.json():[];}catch(e){return [];}}
 

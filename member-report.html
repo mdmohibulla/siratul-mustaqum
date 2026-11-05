@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সদস্য রিপোর্ট | অ্যাডমিন</title>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সদস্য রিপোর্ট | অ্যাডমিন</title>
 <style>
 body{margin:0;background:#e5e7eb;font-family:system-ui,"Noto Sans Bengali","Nirmala UI",sans-serif;color:#111827}
 .tool{max-width:794px;margin:14px auto;display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:0 10px}
@@ -32,7 +32,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border:1px solid 
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
 const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
-async function get(p){try{const r=await fetch(URL_+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.status===401){sessionStorage.removeItem('tk');location.href='panel.html';return null;}return r.ok?await r.json():[];}catch(e){return [];}}
+async function get(p){try{const r=await fetch(URL_+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}return r.ok?await r.json():[];}catch(e){return [];}}
 const MID=new URLSearchParams(location.search).get('id')||'';let NAME='member',PH='';
 function row(t,cells){const tr=document.createElement('tr');cells.forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.appendChild(td);});t.appendChild(tr);}
 function kv(label,val){const d=document.createElement('div');const b=document.createElement('b');b.textContent=label+': ';d.appendChild(b);d.appendChild(document.createTextNode(val||'—'));$('info').appendChild(d);}

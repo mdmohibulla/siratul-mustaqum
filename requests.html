@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সাহায্যের আবেদন | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>সাহায্যের আবেদন</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div class="card wrap hide" id="app"><table><thead><tr><th>তারিখ</th><th>নাম</th><th>ফোন</th><th>এলাকা</th><th>ধরন</th><th>বিবরণ</th></tr></thead><tbody id="tb"></tbody></table></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+async function load(){const rows=await api('help_requests?select=*&order=created_at.desc')||[];const tb=$('tb');
+ rows.forEach(r=>{const tr=document.createElement('tr');[new Date(r.created_at).toLocaleString('bn-BD'),r.name,r.phone,r.area,r.type,r.details].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.appendChild(td);});tb.appendChild(tr);});
+ if(!rows.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=6;td.textContent='কোনো আবেদন নেই।';tr.appendChild(td);tb.appendChild(tr);}}
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>

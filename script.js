@@ -5,9 +5,11 @@ const menuToggle = document.getElementById('menuToggle');
 const nav = document.getElementById('nav');
 
 // ---- ডার্ক থিম, লগইন অবস্থা, মেনু ও গোপন পেজ ----
-const dk = document.createElement('link');
-dk.rel = 'stylesheet'; dk.href = 'dark.css';
-document.head.appendChild(dk);
+if (!document.querySelector('link[href="dark.css"]')) {
+  const dk = document.createElement('link');
+  dk.rel = 'stylesheet'; dk.href = 'dark.css';
+  document.head.appendChild(dk);
+}
 const fav = document.createElement('link');
 fav.rel = 'icon'; fav.type = 'image/png'; fav.href = 'favicon.png';
 document.head.appendChild(fav);
@@ -16,6 +18,7 @@ document.querySelectorAll('.brand-mark').forEach(el => {
   im.src = 'logo.png'; im.alt = 'সিরাতুল মুস্তাকিম'; im.className = 'brand-logo';
   el.replaceWith(im);
 });
+try { const _t = localStorage.getItem('mtk'); if (_t && !sessionStorage.getItem('mtk')) sessionStorage.setItem('mtk', _t); } catch (e) {}
 const MT = sessionStorage.getItem('mtk');
 const PAGE = (location.pathname.split('/').pop() || 'index.html').replace(/\.html$/, '') || 'index';
 const PRIVATE_PAGES = ['dashboard', 'about', 'rules', 'activities', 'reports', 'profile', 'my-dues', 'feedback', 'pay', 'notice-board'];
@@ -30,7 +33,7 @@ if (nav) {
   document.getElementById('navOut')?.addEventListener('click', async e => {
     e.preventDefault();
     try { await fetch(`${SUPABASE_URL}/rest/v1/rpc/member_logout`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: MT }) }); } catch (x) {}
-    sessionStorage.removeItem('mtk'); location.href = 'index.html';
+    sessionStorage.removeItem('mtk');try{localStorage.removeItem('mtk')}catch(e){}; location.href = 'index.html';
   });
 }
 if (MT) {
@@ -82,6 +85,7 @@ document.querySelectorAll('.copy-btn').forEach(button => {
       note.textContent = 'ফর্ম এখনও চালু হয়নি। script.js-এ Supabase URL ও KEY বসান।';
       return;
     }
+    if (form.elements.website && form.elements.website.value) { note.textContent = form.dataset.ok || 'ধন্যবাদ।'; return; }
     btn.disabled = true;
     note.textContent = 'পাঠানো হচ্ছে...';
     try {
@@ -92,7 +96,7 @@ document.querySelectorAll('.copy-btn').forEach(button => {
           'apikey': SUPABASE_KEY,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify(Object.fromEntries(new FormData(form)))
+        body: JSON.stringify(cleanForm(form))
       });
       if (!res.ok) throw new Error('failed');
       form.reset();
@@ -162,4 +166,33 @@ window.installApp = async () => {
   window.addEventListener('pageshow', e => { if (e.persisted || dayKey() !== k0) location.reload(); });
   const t = new Date();
   setTimeout(() => location.reload(), new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1, 0, 0, 5) - t);
+})();
+
+// ফর্মে স্প্যাম আটকানোর লুকানো ঘর
+function cleanForm(f) { const o = Object.fromEntries(new FormData(f)); delete o.website; return o; }
+document.querySelectorAll('#helpForm, #donationForm, #memberForm').forEach(f => {
+  const i = document.createElement('input');
+  i.name = 'website'; i.tabIndex = -1; i.autocomplete = 'off'; i.setAttribute('aria-hidden', 'true');
+  i.style.cssText = 'position:absolute;left:-9999px;opacity:0;height:0;width:0';
+  f.appendChild(i);
+});
+
+// ফুটারে দরকারি লিংক
+(function () {
+  const ft = document.querySelector('footer');
+  if (!ft || ft.querySelector('.flinks')) return;
+  const d = document.createElement('div');
+  d.className = 'flinks';
+  d.innerHTML = '<a href="index.html">হোম</a><a href="donate.html">অনুদান</a><a href="apply.html">সাহায্যের আবেদন</a><a href="member-login.html">সদস্য লগইন</a>';
+  const bottom = ft.querySelector('.footer-bottom');
+  bottom ? ft.insertBefore(d, bottom) : ft.appendChild(d);
+})();
+
+// স্ক্রল করলে কার্ডগুলো ধীরে ফুটে উঠবে
+(function () {
+  if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.1 });
+  const els = document.querySelectorAll('.value-card, .payment-card, .band, .section-heading, .report-card, .activity-card');
+  els.forEach(el => { el.classList.add('reveal'); io.observe(el); });
+  setTimeout(() => els.forEach(el => el.classList.add('in')), 2500);
 })();
