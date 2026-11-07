@@ -13,6 +13,7 @@
 <a class="dcard amber" href="members.html?f=pending"><span>🆕</span><b id="n_pen">–</b><small>অনুমোদনের অপেক্ষায়</small></a>
 <a class="dcard purple" href="chanda.html"><span>💰</span><b id="n_pay">–</b><small>এই মাসে জমা</small></a>
 <a class="dcard pink" href="donations.html"><span>💚</span><b id="n_don">–</b><small>অনুদান যাচাই বাকি</small></a>
+<a class="dcard green" href="funds.html"><span>🕌</span><b id="n_fn">–</b><small>তহবিলভিত্তিক হিসাব</small></a>
 <a class="dcard lime" href="claims.html"><span>📨</span><b id="n_cl">–</b><small>চাঁদা জমার আবেদন</small></a>
 <a class="dcard cyan" href="notices.html"><span>📢</span><b>নোটিশ</b><small>ঘোষণা দিন</small></a>
 <a class="dcard purple" href="backup.html"><span>💾</span><b id="n_bk">–</b><small>ব্যাকআপ</small></a>
@@ -53,6 +54,7 @@ async function counts(){
   const ex=lg.filter(x=>x.kind==='expense').reduce((s,x)=>s+Number(x.amount),0);$('n_tot').textContent='৳ '+bn(inc);$('n_exp').textContent='৳ '+bn(ex);$('n_bal').textContent='৳ '+bn(inc-ex);}catch(e){}
  try{const r=await fetch(URL_+'/rest/v1/dues?select=amount&paid=eq.false',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){const x=await r.json();$('n_dues').textContent='৳ '+bn(x.reduce((s,y)=>s+Number(y.amount),0));}}catch(e){}
  try{const r=await fetch(URL_+'/rest/v1/payment_claims?select=id&status=eq.pending',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){$('n_cl').textContent=bn((await r.json()).length);}}catch(e){}
+ try{const r=await fetch(URL_+'/rest/v1/funds?select=name',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){$('n_fn').textContent=bn((await r.json()).length)+' টি';}}catch(e){}
  try{const l=localStorage.getItem('lastBackup');$('n_bk').textContent=l?bn(Math.floor((Date.now()-Number(l))/86400000))+' দিন আগে':'নেওয়া হয়নি';}catch(e){}
  try{const r=await fetch(URL_+'/rest/v1/comments?select=id&status=eq.new',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok){$('n_cm').textContent=bn((await r.json()).length);}}catch(e){}}
 async function dl(path,cols,name){const rows=await api(path)||[];

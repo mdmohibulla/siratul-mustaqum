@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>তহবিলভিত্তিক হিসাব | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>তহবিলভিত্তিক হিসাব</strong><span><a href="ledger.html">হিসাব লিখুন</a> &nbsp; <a href="panel.html">← ড্যাশবোর্ড</a></span></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="bar"><button id="p_all" class="on">সব সময়</button><button id="p_year" class="alt">এই বছর</button><button id="p_month" class="alt">এই মাস</button></div>
+<div class="dash sm" id="top"></div>
+<h3 style="margin:18px 0 8px">তহবিল অনুযায়ী (ক্লিক করে বিস্তারিত দেখুন)</h3><div class="dash sm" id="cards"></div>
+<div class="card" style="margin-top:14px"><h3>বিস্তারিত — <span id="seln"></span></h3><div id="detail"></div></div>
+<div class="card"><h3>➕ নতুন তহবিল</h3><div class="bar"><input id="nf" placeholder="যেমন: শিক্ষা তহবিল" maxlength="60"><button id="nfb">তহবিল যোগ করুন</button></div>
+<p style="color:#94a3b8;margin:6px 0 0">সদস্যদের চাঁদা নিজে থেকে "সাধারণ" তহবিলে ধরা হয়। অনুদান ও হাতে লেখা জমা-খরচে তহবিল বেছে দিতে হয়। কোন তহবিল কোন খাতে খরচ হবে তা আপনাদের সংগঠনের সিদ্ধান্ত ও আলেমের পরামর্শ অনুযায়ী ঠিক করুন, এই পেজ শুধু হিসাব আলাদা রাখে।</p></div>
+</div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const sum=a=>a.reduce((s,x)=>s+Number(x.amount||0),0);const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text()+'\\n(funds_setup.sql চালানো হয়েছে কি না দেখুন)');throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+let FUNDS=[],PAY=[],DON=[],LED=[],SEL=null,PER='all';
+const COL=['blue','green','amber','purple','cyan','pink','lime'];
+function inPer(d){if(PER==='all')return true;const s=String(d||'').slice(0,10);return PER==='year'?s.slice(0,4)===String(new Date().getFullYear()):s.slice(0,7)===cur();}
+function calc(){const o={};FUNDS.forEach(f=>o[f.name]={i:0,e:0});
+ const g=o['সাধারণ']||(o['সাধারণ']={i:0,e:0});g.i+=sum(PAY.filter(p=>inPer(p.created_at)));
+ DON.filter(d=>d.verified&&inPer(d.created_at)).forEach(d=>{const e=o[d.fund]||(o[d.fund]={i:0,e:0});e.i+=Number(d.amount);});
+ LED.filter(l=>inPer(l.entry_date)).forEach(l=>{const e=o[l.fund]||(o[l.fund]={i:0,e:0});if(l.kind==='income')e.i+=Number(l.amount);else e.e+=Number(l.amount);});
+ return o;}
+function mk(p,cls,i,v,l,l2){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=i;d.children[1].textContent=v;d.children[2].textContent=l;
+ if(l2){const s=document.createElement('small');s.textContent=l2;d.appendChild(s);}p.appendChild(d);return d;}
+function draw(){['all','year','month'].forEach(k=>{$('p_'+k).className=PER===k?'on':'alt';});
+ const o=calc(),names=Object.keys(o);let TI=0,TE=0;names.forEach(n=>{TI+=o[n].i;TE+=o[n].e;});
+ const t=$('top');t.innerHTML='';mk(t,'green','💰','৳ '+bn(TI),'মোট জমা');mk(t,'pink','💸','৳ '+bn(TE),'মোট খরচ');mk(t,'purple','🏦','৳ '+bn(TI-TE),'মোট অবশিষ্ট');
+ const c=$('cards');c.innerHTML='';
+ names.forEach((n,idx)=>{const bal=o[n].i-o[n].e;const d=mk(c,bal<0?'red':COL[idx%COL.length],'🕌','৳ '+bn(bal),n,'জমা ৳ '+bn(o[n].i)+' • খরচ ৳ '+bn(o[n].e)+(bal<0?' • ⚠️ ঘাটতি':''));
+  d.style.cursor='pointer';if(n===SEL)d.style.outline='2px solid rgba(255,255,255,.5)';d.onclick=()=>{SEL=n;draw();drawDetail();};});
+ if(!names.length)c.textContent='কোনো তহবিল নেই।';}
+function drawDetail(){const box=$('detail');box.innerHTML='';$('seln').textContent=SEL||'';if(!SEL){box.textContent='কোনো তহবিলে ক্লিক করুন।';return;}
+ const items=[];
+ if(SEL==='সাধারণ'){const by={};PAY.filter(p=>inPer(p.created_at)).forEach(p=>{const k=p.month||String(p.created_at).slice(0,7);const e=by[k]||(by[k]={a:0,n:0,d:p.created_at});e.a+=Number(p.amount);e.n++;});
+  Object.keys(by).forEach(m=>items.push({d:by[m].d,i:true,t:'সদস্যদের চাঁদা — '+m+' মাস ('+bn(by[m].n)+' জন)',a:by[m].a}));}
+ DON.filter(x=>x.verified&&x.fund===SEL&&inPer(x.created_at)).forEach(x=>items.push({d:x.created_at,i:true,t:'অনুদান — '+x.donor_name,a:Number(x.amount),tb:'donations',id:x.id}));
+ LED.filter(x=>x.fund===SEL&&inPer(x.entry_date)).forEach(x=>items.push({d:x.entry_date,i:x.kind==='income',t:x.title+(x.note?' • '+x.note:''),a:Number(x.amount),tb:'ledger',id:x.id}));
+ items.sort((a,b)=>String(b.d)<String(a.d)?-1:1);
+ items.forEach(x=>{const e=document.createElement('div');e.className='entry '+(x.i?'paid':'due');
+  const l=document.createElement('div');const b=document.createElement('b');b.textContent=x.t;const s=document.createElement('small');s.textContent=(x.i?'জমা':'খরচ')+' • '+dfmt(x.d);l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);
+  const r=document.createElement('div');r.style.textAlign='right';const a=document.createElement('div');a.className='amt'+(x.i?' in':'');a.textContent=(x.i?'+ ':'− ')+'৳ '+bn(x.a);r.appendChild(a);
+  if(x.tb){const m=document.createElement('button');m.className='alt';m.textContent='তহবিল বদলান';m.onclick=async()=>{const v=prompt('কোন তহবিলে সরাবেন? ('+FUNDS.map(f=>f.name).join(' / ')+')',SEL);if(!v||v.trim()===SEL)return;
+    await api(x.tb+'?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({fund:v.trim()})});load();};r.appendChild(m);}
+  e.appendChild(l);e.appendChild(r);box.appendChild(e);});
+ if(!items.length)box.textContent='এই সময়ে এই তহবিলে কোনো লেনদেন নেই।';}
+async function load(){const [f,p,d,l]=await Promise.all([api('funds?select=*&order=sort,name'),api('payments?select=amount,created_at,month'),api('donations?select=id,amount,created_at,verified,fund,donor_name'),api('ledger?select=*&order=entry_date.desc')]);
+ FUNDS=f||[];PAY=p||[];DON=d||[];LED=l||[];if(!SEL&&FUNDS.length)SEL=FUNDS[0].name;draw();drawDetail();}
+['all','year','month'].forEach(k=>{$('p_'+k).onclick=()=>{PER=k;draw();drawDetail();};});
+$('nfb').onclick=async()=>{const n=$('nf').value.trim();if(!n){alert('তহবিলের নাম দিন।');return;}await api('funds',{method:'POST',body:JSON.stringify({name:n,sort:FUNDS.length+1})});$('nf').value='';SEL=n;load();};
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>

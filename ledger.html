@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>হিসাব ও রিপোর্ট | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
-<header><strong>হিসাব ও রিপোর্ট</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<header><strong>হিসাব ও রিপোর্ট</strong><span><a href="funds.html">🕌 তহবিলভিত্তিক হিসাব</a> &nbsp; <a href="panel.html">← ড্যাশবোর্ড</a></span></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
 <div id="app" class="hide">
 <div class="dash" id="cards"></div>
 <div class="two">
-<div class="card"><h3>💸 খরচ যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="e_d"></label><label>খরচের বিবরণ<input id="e_t" maxlength="150" placeholder="যেমন: রোগীর ওষুধ"></label><label>টাকা<input type="number" id="e_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="e_n" maxlength="200"></label></div><button id="e_b" class="red">খরচ লিখুন</button><div id="e_l" style="margin-top:14px"></div></div>
-<div class="card"><h3>➕ মোট টাকার পরিমাণে টাকা যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="i_d"></label><label>টাকার উৎস / বিবরণ<input id="i_t" maxlength="150" placeholder="যেমন: নগদ অনুদান"></label><label>টাকা<input type="number" id="i_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="i_n" maxlength="200"></label></div><button id="i_b">টাকা যোগ করুন</button><div id="i_l" style="margin-top:14px"></div></div>
+<div class="card"><h3>💸 খরচ যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="e_d"></label><label>খরচের বিবরণ<input id="e_t" maxlength="150" placeholder="যেমন: রোগীর ওষুধ"></label><label>টাকা<input type="number" id="e_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="e_n" maxlength="200"></label><label>তহবিল<select id="e_f"></select></label></div><button id="e_b" class="red">খরচ লিখুন</button><div id="e_l" style="margin-top:14px"></div></div>
+<div class="card"><h3>➕ মোট টাকার পরিমাণে টাকা যোগ করুন</h3><div class="fg"><label>তারিখ<input type="date" id="i_d"></label><label>টাকার উৎস / বিবরণ<input id="i_t" maxlength="150" placeholder="যেমন: নগদ অনুদান"></label><label>টাকা<input type="number" id="i_a" min="1"></label><label>নোট (ঐচ্ছিক)<input id="i_n" maxlength="200"></label><label>তহবিল<select id="i_f"></select></label></div><button id="i_b">টাকা যোগ করুন</button><div id="i_l" style="margin-top:14px"></div></div>
 </div></div></main>
 <script>
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
@@ -22,7 +22,7 @@ async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:
 let LED=[];
 function card(parent,cls,icon,val,label){const d=document.createElement('div');d.className='dcard '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=icon;d.children[1].textContent=val;d.children[2].textContent=label;parent.appendChild(d);}
 function list(kind,box){const el=$(box);el.innerHTML='';LED.filter(x=>x.kind===kind).forEach(x=>{const e=document.createElement('div');e.className='entry';
- const l=document.createElement('div');const b=document.createElement('b');b.textContent=x.title;const s=document.createElement('small');s.textContent=dfmt(x.entry_date)+(x.note?' • '+x.note:'');l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);
+ const l=document.createElement('div');const b=document.createElement('b');b.textContent=x.title;const s=document.createElement('small');s.textContent=dfmt(x.entry_date)+' • '+(x.fund||'সাধারণ')+(x.note?' • '+x.note:'');l.appendChild(b);l.appendChild(document.createElement('br'));l.appendChild(s);
  const r=document.createElement('div');r.style.textAlign='right';const a=document.createElement('div');a.className='amt'+(kind==='income'?' in':'');a.textContent='৳ '+bn(x.amount);
  const del=document.createElement('button');del.className='alt red';del.textContent='মুছুন';del.onclick=async()=>{if(confirm('এই এন্ট্রি মুছবেন?')){await api('ledger?id=eq.'+x.id,{method:'DELETE'});load();}};
  r.appendChild(a);r.appendChild(del);e.appendChild(l);e.appendChild(r);el.appendChild(e);});
@@ -36,8 +36,10 @@ async function load(){
  list('expense','e_l');list('income','i_l');}
 async function add(k,p){const t=$(p+'_t').value.trim(),a=Number($(p+'_a').value),d=$(p+'_d').value||today();
  if(!t||!(a>0)){alert('বিবরণ ও টাকা দিন।');return;}
- await api('ledger',{method:'POST',body:JSON.stringify({kind:k,entry_date:d,title:t,amount:a,note:$(p+'_n').value.trim()||null})});
+ await api('ledger',{method:'POST',body:JSON.stringify({kind:k,entry_date:d,title:t,amount:a,fund:$(p+'_f').value||'সাধারণ',note:$(p+'_n').value.trim()||null})});
  $(p+'_t').value=$(p+'_a').value=$(p+'_n').value='';load();}
 $('e_b').onclick=()=>add('expense','e');$('i_b').onclick=()=>add('income','i');$('e_d').value=$('i_d').value=today();
-if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+async function loadFunds(){try{const r=await fetch(URL_+'/rest/v1/funds?select=name&order=sort,name',{headers:{apikey:KEY,Authorization:'Bearer '+token}});const F=r.ok?await r.json():[{name:'সাধারণ'}];
+ ['e_f','i_f'].forEach(id=>{const s=$(id),v=s.value;s.innerHTML='';(F.length?F:[{name:'সাধারণ'}]).forEach(f=>{const o=document.createElement('option');o.value=o.textContent=f.name;s.appendChild(o);});if(v)s.value=v;});}catch(e){}}
+if(token){$('app').classList.remove('hide');loadFunds();load();}else $('need').classList.remove('hide');
 </script></body></html>

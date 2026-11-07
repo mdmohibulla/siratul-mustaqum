@@ -38,7 +38,7 @@ async function postRet(p,b){const r=await fetch(URL_+'/rest/v1/'+p,{method:'POST
 async function get(p){const r=await fetch(URL_+'/rest/v1/'+p,{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';throw 0;}if(!r.ok)return null;return await r.json();}
 async function collect(){const st=$('st');const mcols='id,name,phone,area,occupation,monthly_amount,status,active,joined_on,created_at'+($('ph').checked?',photo':'');
  const T={members:'members?select='+mcols,payments:'payments?select=*',dues:'dues?select=*',donations:'donations?select=*',ledger:'ledger?select=*',activities:'activities?select=*',
-  help_requests:'help_requests?select=*',comments:'comments?select=*',payment_claims:'payment_claims?select=*',notices:'notices?select=*'};
+  help_requests:'help_requests?select=*',comments:'comments?select=*',payment_claims:'payment_claims?select=*',notices:'notices?select=*',funds:'funds?select=*'};
  const out={_তারিখ:new Date().toISOString()};
  for(const k in T){st.textContent=k+' আনা হচ্ছে...';const d=await get(T[k]);if(d!==null)out[k]=d;}
  st.textContent='';return out;}
@@ -81,14 +81,16 @@ async function pdfAll(){
    ['সদস্য তালিকা','members',(o.members||[]).slice().sort(by('name',1)),['নাম','ফোন','ঠিকানা','পেশা','মাসিক','অবস্থা','যোগদান'],r=>[TR(r.name,28),r.phone||'—',TR(r.area,24),TR(r.occupation,18),'৳ '+BN(r.monthly_amount),r.status==='approved'?'সক্রিয়':'অপেক্ষায়',DF(r.joined_on||r.created_at)]],
    ['চাঁদা জমা','payments',(o.payments||[]).slice().sort(by('month',-1)),['সদস্য','মাস','পরিমাণ','জমার তারিখ'],r=>[TR(mem[r.member_id],30),r.month,'৳ '+BN(r.amount),DF(r.created_at)]],
    ['বকেয়া','dues',(o.dues||[]).slice().sort(by('month',-1)),['সদস্য','মাস','পরিমাণ','অবস্থা','পরিশোধ','নোট'],r=>[TR(mem[r.member_id],26),r.month,'৳ '+BN(r.amount),r.paid?'পরিশোধিত':'বাকি',r.paid_on?DF(r.paid_on):'—',TR(r.note,40)]],
-   ['অনুদান','donations',(o.donations||[]).slice().sort(by('created_at',-1)),['তারিখ','দাতা','মাধ্যম','পরিমাণ','প্রেরক','TrxID','যাচাই'],r=>[DF(r.created_at),TR(r.donor_name,22),r.method,'৳ '+BN(r.amount),TR(r.sender_number,14),TR(r.trx_id,14),r.verified?'✓':'অপেক্ষায়']],
-   ['হিসাব (জমা ও খরচ)','ledger',(o.ledger||[]).slice().sort(by('entry_date',-1)),['তারিখ','ধরন','বিবরণ','পরিমাণ','নোট'],r=>[DF(r.entry_date),r.kind==='income'?'জমা':'খরচ',TR(r.title,40),'৳ '+BN(r.amount),TR(r.note,40)]],
+   ['অনুদান','donations',(o.donations||[]).slice().sort(by('created_at',-1)),['তারিখ','দাতা','মাধ্যম','পরিমাণ','তহবিল','প্রেরক','TrxID','যাচাই'],r=>[DF(r.created_at),TR(r.donor_name,22),r.method,'৳ '+BN(r.amount),r.fund||'সাধারণ',TR(r.sender_number,14),TR(r.trx_id,14),r.verified?'✓':'অপেক্ষায়']],
+   ['হিসাব (জমা ও খরচ)','ledger',(o.ledger||[]).slice().sort(by('entry_date',-1)),['তারিখ','ধরন','তহবিল','বিবরণ','পরিমাণ','নোট'],r=>[DF(r.entry_date),r.kind==='income'?'জমা':'খরচ',r.fund||'সাধারণ',TR(r.title,36),'৳ '+BN(r.amount),TR(r.note,36)]],
    ['কার্যক্রম','activities',(o.activities||[]).slice().sort(by('act_date',-1)),['তারিখ','শিরোনাম','টাকা','বিবরণ'],r=>[DF(r.act_date),TR(r.title,40),r.amount?'৳ '+BN(r.amount):'—',TR(r.details,110)]],
    ['চাঁদা জমার আবেদন','payment_claims',(o.payment_claims||[]).slice().sort(by('created_at',-1)),['সদস্য','মাস','পরিমাণ','মাধ্যম','TrxID','অবস্থা'],r=>[TR(mem[r.member_id],26),r.month,'৳ '+BN(r.amount),r.method,TR(r.trx_id,16),r.status==='pending'?'অপেক্ষায়':r.status==='approved'?'গৃহীত':'বাতিল']],
    ['সাহায্যের আবেদন','help_requests',(o.help_requests||[]).slice().sort(by('created_at',-1)),['তারিখ','নাম','ফোন','এলাকা','ধরন','বিবরণ'],r=>[DF(r.created_at),TR(r.name,22),TR(r.phone,14),TR(r.area,20),TR(r.type,14),TR(r.details,110)]],
    ['নোটিশ','notices',(o.notices||[]).slice().sort(by('created_at',-1)),['তারিখ','শিরোনাম','ধরন','বিবরণ'],r=>[DF(r.created_at),TR(r.title,40),r.kind,TR(r.body,110)]],
    ['মন্তব্য','comments',(o.comments||[]).slice().sort(by('created_at',-1)),['তারিখ','সদস্য','ধরন','মন্তব্য'],r=>[DF(r.created_at),TR(mem[r.member_id],22),r.kind+(r.is_private?' 🔒':''),TR(r.body,120)]]
   ];
+  const FR=(o.funds||[]).map(f=>({name:f.name,i:(f.name==='সাধারণ'?ch:0)+SM((o.donations||[]).filter(x=>x.verified&&x.fund===f.name))+SM((o.ledger||[]).filter(x=>x.kind==='income'&&x.fund===f.name)),e:SM((o.ledger||[]).filter(x=>x.kind==='expense'&&x.fund===f.name))}));
+  SPEC.unshift(['তহবিল অনুযায়ী হিসাব','funds',FR,['তহবিল','জমা','খরচ','অবশিষ্ট'],r=>[r.name,'৳ '+BN(r.i),'৳ '+BN(r.e),'৳ '+BN(r.i-r.e)]]);
   for(const [title,key,rows,head,map] of SPEC){
    let i=0,first=true;
    do{
