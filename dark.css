@@ -194,3 +194,22 @@ nav a:not(.nav-cta):hover:after{transform:scaleX(1)}
 .reveal.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1;transform:none;transition:none}}
 *{scrollbar-width:thin;scrollbar-color:#334155 #020617}
+
+/* লাইন-আইকন ও যাতে কিছু কেটে না যায় */
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}
+.tile>span,.dcard>span{display:block}
+.tile>span .ic,.dcard>span .ic{display:block;margin:0 auto;width:32px;height:32px}
+.rem .i .ic{width:30px;height:30px}
+.mbox>div .ic{width:48px;height:48px;color:#fbbf24}
+.bottom-nav a>span .ic{width:24px;height:24px;display:block;margin:0 auto}
+.value-icon .ic{width:26px;height:26px;color:#93c5fd}
+.tile.blue>span,.dcard.blue>span{color:#60a5fa}.tile.green>span,.dcard.green>span{color:#4ade80}.tile.amber>span,.dcard.amber>span{color:#fbbf24}
+.tile.purple>span,.dcard.purple>span{color:#c084fc}.tile.pink>span,.dcard.pink>span{color:#f472b6}.tile.cyan>span,.dcard.cyan>span{color:#22d3ee}
+.tile.red>span,.dcard.red>span{color:#f87171}.tile.lime>span,.dcard.lime>span{color:#a3e635}
+.rem.amber .i{color:#fbbf24}.rem.red .i{color:#f87171}.rem.green .i{color:#4ade80}
+.bottom-nav{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.bottom-nav a{min-height:48px;justify-content:center}
+body.has-bn{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+.tile b,.tile small,.stat b,.stat small,.entry,.cm p,.rem .t,.nbn,.value-card p,.value-card h3{overflow-wrap:anywhere}
+.stat b{font-size:clamp(18px,5.5vw,26px)}
+img,svg{max-width:100%}

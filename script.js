@@ -196,3 +196,6 @@ document.querySelectorAll('#helpForm, #donationForm, #memberForm').forEach(f => 
   els.forEach(el => { el.classList.add('reveal'); io.observe(el); });
   setTimeout(() => els.forEach(el => el.classList.add('in')), 2500);
 })();
+
+// লাইন-আইকন (ইমোজির বদলে)
+if (!window.__icons) { const si = document.createElement('script'); si.src = 'icons.js'; document.head.appendChild(si); }

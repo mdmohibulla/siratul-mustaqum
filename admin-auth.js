@@ -12,5 +12,6 @@
   var s=sessionStorage.getItem('tk'),exp=Number(localStorage.getItem('tk_exp')||0);
   if(!(s&&exp&&Date.now()<exp-60000)&&localStorage.getItem('tk_rt'))refresh();
   var l=document.createElement('link');l.rel='icon';l.href='favicon.png';document.head.appendChild(l);
+  var si=document.createElement('script');si.src='icons.js';document.head.appendChild(si);
  }catch(e){}
 })();

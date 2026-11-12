@@ -106,3 +106,13 @@ img.av{object-fit:cover;display:block}
 .tg{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
 .tg.b{background:#0a1a3a;color:#93c5fd;border-color:#1e3a8a}.tg.g{background:#04200f;color:#86efac;border-color:#14532d}
 .tg.r{background:#2a0a0a;color:#fca5a5;border-color:#7f1d1d}.tg.p{background:#1a0b33;color:#d8b4fe;border-color:#4c1d95}.tg.y{background:#271a05;color:#fcd34d;border-color:#92400e}
+
+/* লাইন-আইকন ও যাতে কিছু কেটে না যায় */
+.ic{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:middle}
+.dcard>span .ic{display:block;margin:0 auto;width:32px;height:32px}
+.dcard.small>span .ic{width:28px;height:28px}
+.dcard.blue>span{color:#60a5fa}.dcard.green>span{color:#4ade80}.dcard.amber>span{color:#fbbf24}.dcard.purple>span{color:#c084fc}
+.dcard.pink>span{color:#f472b6}.dcard.cyan>span{color:#22d3ee}.dcard.red>span{color:#f87171}.dcard.lime>span{color:#a3e635}
+.dcard b,.dcard small,.entry,.cm p{overflow-wrap:anywhere}
+.dcard b{font-size:clamp(22px,6vw,30px)}
+img,svg{max-width:100%}
