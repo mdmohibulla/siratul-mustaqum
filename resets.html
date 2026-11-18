@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>পাসওয়ার্ড রিসেটের অনুরোধ | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>পাসওয়ার্ড রিসেটের অনুরোধ</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<p style="color:#fbbf24">রিসেট করার আগে নিশ্চিত হোন অনুরোধকারী সত্যিই সেই সদস্য (ফোনে কথা বলে বা চিনে)। নম্বর শুধু লেখা থাকলেই কেউ অন্যের নামে অনুরোধ করতে পারে।</p>
+<div class="bar"><button id="f_p" class="on">অপেক্ষায়</button><button id="f_d" class="alt">সম্পন্ন</button></div>
+<div id="list"></div></div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+const intl=p=>{const d=String(p||'').replace(/\D/g,'');return d.startsWith('880')?d:(d.startsWith('0')?'880'+d.slice(1):d);};
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text()+'\n(batch1_setup.sql চালানো হয়েছে কি না দেখুন)');throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+let ROWS=[],F='pending';
+const ALPHA='abcdefghjkmnpqrstuvwxyz23456789';
+function tmpPw(){const b=crypto.getRandomValues(new Uint8Array(8));let s='';b.forEach(x=>s+=ALPHA[x%ALPHA.length]);return s;}
+function draw(){$('f_p').className=F==='pending'?'on':'alt';$('f_d').className=F==='done'?'on':'alt';
+ const L=ROWS.filter(x=>x.status===F);const box=$('list');box.innerHTML='';
+ L.forEach(x=>{const m=x.members||{};const c=document.createElement('div');c.className='cm'+(x.status==='pending'?' new':'');
+  const h=document.createElement('div');h.className='ch';const nm=document.createElement('a');nm.href='mprofile.html?id='+x.member_id;nm.textContent=m.name||'সদস্য';nm.style.fontWeight='700';h.appendChild(nm);
+  const ph=document.createElement('span');ph.className='tg b';ph.textContent=m.phone||'';h.appendChild(ph);
+  const dt=document.createElement('small');dt.textContent=new Date(x.created_at).toLocaleString('bn-BD');dt.style.marginLeft='auto';h.appendChild(dt);c.appendChild(h);
+  if(x.note){const p=document.createElement('p');p.textContent='সদস্যের বার্তা: '+x.note;p.style.margin='8px 0';c.appendChild(p);}
+  if(x.status==='pending'){const b=document.createElement('button');b.textContent='নতুন পাসওয়ার্ড দিন';b.style.cssText='margin-top:8px';
+   b.onclick=async()=>{if(!confirm((m.name||'এই সদস্য')+' সত্যিই অনুরোধ করেছেন তো? নতুন অস্থায়ী পাসওয়ার্ড বসানো হবে।'))return;
+    const pw=tmpPw();const r=await api('rpc/admin_reset_member_password',{method:'POST',body:JSON.stringify({p_member:x.member_id,p_password:pw})});
+    if(!(r&&r.ok)){alert('পাসওয়ার্ড বসানো যায়নি: '+((r&&r.error)||'admin_setup.sql চালানো হয়েছে কি না দেখুন'));return;}
+    await api('reset_requests?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({status:'done',done_at:new Date().toISOString()})});
+    const msg='আসসালামু আলাইকুম '+(m.name||'')+', আপনার নতুন অস্থায়ী পাসওয়ার্ড: '+pw+' । লগইন করে প্রোফাইল পেজ থেকে নিজের পছন্দের পাসওয়ার্ড বদলে নিন। — সিরাতুল মুস্তাকিম ফাউন্ডেশন';
+    alert('নতুন অস্থায়ী পাসওয়ার্ড: '+pw+'\n\nএখন WhatsApp খুলবে, সেখান থেকে সদস্যকে পাঠান।');
+    window.open('https://wa.me/'+intl(m.phone)+'?text='+encodeURIComponent(msg),'_blank');load();};c.appendChild(b);}
+  else{const s=document.createElement('small');s.textContent='✓ সম্পন্ন'+(x.done_at?' • '+new Date(x.done_at).toLocaleString('bn-BD'):'');c.appendChild(s);}
+  box.appendChild(c);});
+ if(!L.length)box.textContent=F==='pending'?'কোনো অনুরোধ নেই।':'এখনও কিছু সম্পন্ন হয়নি।';}
+async function load(){ROWS=await api('reset_requests?select=*,members(name,phone)&order=created_at.desc&limit=200')||[];draw();}
+$('f_p').onclick=()=>{F='pending';draw();};$('f_d').onclick=()=>{F='done';draw();};
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>

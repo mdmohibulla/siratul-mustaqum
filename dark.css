@@ -213,3 +213,9 @@ body.has-bn{padding-bottom:calc(88px + env(safe-area-inset-bottom))}
 .tile b,.tile small,.stat b,.stat small,.entry,.cm p,.rem .t,.nbn,.value-card p,.value-card h3{overflow-wrap:anywhere}
 .stat b{font-size:clamp(18px,5.5vw,26px)}
 img,svg{max-width:100%}
+
+/* আবেদনের অবস্থার ধাপ */
+.tl{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.tl div{flex:1;min-width:130px;text-align:center;padding:12px 8px;border-radius:14px;border:1px solid #1e293b;background:#0b1220;color:#94a3b8;font-size:15px}
+.tl div.on{border-color:#22c55e;background:#04200f;color:#86efac;font-weight:700}
+.tl div.cur{border-color:#3b82f6;background:#0a1a3a;color:#93c5fd;font-weight:700}

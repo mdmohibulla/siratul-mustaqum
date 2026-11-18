@@ -2,16 +2,41 @@
 <html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সাহায্যের আবেদন | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
 <header><strong>সাহায্যের আবেদন</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
 <div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
-<div class="card wrap hide" id="app"><table><thead><tr><th>তারিখ</th><th>নাম</th><th>ফোন</th><th>এলাকা</th><th>ধরন</th><th>বিবরণ</th></tr></thead><tbody id="tb"></tbody></table></div></main>
+<div id="app" class="hide">
+<div class="dash sm" id="top"></div>
+<div class="bar" id="chips" style="margin-top:14px"></div>
+<div id="list"></div></div></main>
 <script>
 const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
 const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
-const cur=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+const intl=p=>{const d=String(p||'').replace(/\D/g,'');return d.startsWith('880')?d:(d.startsWith('0')?'880'+d.slice(1):d);};
 async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
  if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
- if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
-async function load(){const rows=await api('help_requests?select=*&order=created_at.desc')||[];const tb=$('tb');
- rows.forEach(r=>{const tr=document.createElement('tr');[new Date(r.created_at).toLocaleString('bn-BD'),r.name,r.phone,r.area,r.type,r.details].forEach(v=>{const td=document.createElement('td');td.textContent=v??'';tr.appendChild(td);});tb.appendChild(tr);});
- if(!rows.length){const tr=document.createElement('tr');const td=document.createElement('td');td.colSpan=6;td.textContent='কোনো আবেদন নেই।';tr.appendChild(td);tb.appendChild(tr);}}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text()+'\n(batch1_setup.sql চালানো হয়েছে কি না দেখুন)');throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+const ST=[['new','নতুন','y'],['reviewing','যাচাই চলছে','b'],['approved','অনুমোদিত','g'],['helped','সহায়তা দেওয়া হয়েছে','g'],['rejected','বিবেচনা করা সম্ভব হয়নি','r']];
+const SN=Object.fromEntries(ST.map(s=>[s[0],s]));let ROWS=[],F='all';
+function tag(t,c){const s=document.createElement('span');s.className='tg '+c;s.textContent=t;return s;}
+function mk(p,cls,i,v,l){const d=document.createElement('div');d.className='dcard small '+cls;d.innerHTML='<span></span><b></b><small></small>';d.children[0].textContent=i;d.children[1].textContent=v;d.children[2].textContent=l;p.appendChild(d);}
+function draw(){const t=$('top');t.innerHTML='';mk(t,'blue','📥',bn(ROWS.length),'মোট আবেদন');mk(t,'amber','🆕',bn(ROWS.filter(x=>x.status==='new').length),'নতুন');mk(t,'cyan','🗓️',bn(ROWS.filter(x=>x.status==='reviewing').length),'যাচাই চলছে');mk(t,'green','✅',bn(ROWS.filter(x=>x.status==='helped').length),'সহায়তা দেওয়া হয়েছে');
+ const ch=$('chips');ch.innerHTML='';[['all','সব']].concat(ST.map(s=>[s[0],s[1]])).forEach(([k,l])=>{const b=document.createElement('button');b.className=F===k?'on':'alt';b.textContent=l;b.onclick=()=>{F=k;draw();};ch.appendChild(b);});
+ const L=ROWS.filter(x=>F==='all'||x.status===F);const box=$('list');box.innerHTML='';
+ L.forEach(x=>{const s=SN[x.status]||SN.new;const c=document.createElement('div');c.className='cm'+(x.status==='new'?' new':'');
+  const h=document.createElement('div');h.className='ch';const nm=document.createElement('b');nm.textContent=x.name;nm.style.color='#fff';h.appendChild(nm);
+  h.appendChild(tag(s[1],s[2]));if(x.type)h.appendChild(tag(x.type,'p'));if(x.tracking_code)h.appendChild(tag(x.tracking_code,'b'));
+  const dt=document.createElement('small');dt.textContent=new Date(x.created_at).toLocaleString('bn-BD');dt.style.marginLeft='auto';h.appendChild(dt);c.appendChild(h);
+  const p=document.createElement('p');p.style.cssText='margin:8px 0;white-space:pre-wrap';p.textContent=(x.phone||'')+' • '+(x.area||'')+'\n'+(x.details||'');c.appendChild(p);
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center';
+  const sel=document.createElement('select');ST.forEach(o=>{const op=document.createElement('option');op.value=o[0];op.textContent=o[1];sel.appendChild(op);});sel.value=x.status;
+  const pn=document.createElement('input');pn.placeholder='আবেদনকারীকে দেখানো বার্তা';pn.value=x.public_note||'';pn.maxLength=300;pn.style.cssText='flex:1;min-width:180px;margin:0';
+  const an=document.createElement('input');an.placeholder='শুধু আপনার নোট';an.value=x.admin_note||'';an.maxLength=300;an.style.cssText='flex:1;min-width:150px;margin:0';
+  row.appendChild(sel);row.appendChild(pn);row.appendChild(an);c.appendChild(row);
+  const bt=(t,cls,fn)=>{const b=document.createElement('button');b.textContent=t;if(cls)b.className=cls;b.onclick=fn;b.style.cssText='margin:8px 8px 0 0;padding:6px 12px;font-size:13px';c.appendChild(b);};
+  bt('সংরক্ষণ','',async()=>{await api('help_requests?id=eq.'+x.id,{method:'PATCH',body:JSON.stringify({status:sel.value,public_note:pn.value.trim()||null,admin_note:an.value.trim()||null})});load();});
+  if(x.phone)bt('WhatsApp','alt',()=>window.open('https://wa.me/'+intl(x.phone)+'?text='+encodeURIComponent('আসসালামু আলাইকুম '+x.name+', সিরাতুল মুস্তাকিম ফাউন্ডেশন থেকে আপনার সাহায্যের আবেদন বিষয়ে যোগাযোগ করছি।'),'_blank'));
+  bt('মুছুন','alt red',async()=>{if(confirm('এই আবেদন মুছে যাবে। নিশ্চিত?')){await api('help_requests?id=eq.'+x.id,{method:'DELETE'});load();}});
+  box.appendChild(c);});
+ if(!L.length)box.textContent='কোনো আবেদন নেই।';}
+async function load(){ROWS=await api('help_requests?select=*&order=created_at.desc&limit=300')||[];draw();}
 if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
 </script></body></html>

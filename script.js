@@ -100,7 +100,7 @@ document.querySelectorAll('.copy-btn').forEach(button => {
       });
       if (!res.ok) throw new Error('failed');
       form.reset();
-      note.textContent = form.dataset.ok || 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।';
+      note.textContent = (form.dataset.ok || 'আপনার আবেদন গ্রহণ করা হয়েছে। আমরা যোগাযোগ করব।') + (form.id === 'helpForm' && window.__lastCode ? ' আপনার ট্র্যাকিং কোড: ' + window.__lastCode + ' (লিখে রাখুন, “আবেদনের অবস্থা” পেজে এই কোড দিয়ে অবস্থা দেখতে পারবেন)' : '');
     } catch (e) {
       note.textContent = 'পাঠানো যায়নি। আবার চেষ্টা করুন।';
     } finally {
@@ -169,7 +169,8 @@ window.installApp = async () => {
 })();
 
 // ফর্মে স্প্যাম আটকানোর লুকানো ঘর
-function cleanForm(f) { const o = Object.fromEntries(new FormData(f)); delete o.website; return o; }
+function newCode() { const a = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s = ''; crypto.getRandomValues(new Uint8Array(6)).forEach(x => { s += a[x % a.length]; }); return 'SMF-' + s; }
+function cleanForm(f) { const o = Object.fromEntries(new FormData(f)); delete o.website; if (f.id === 'helpForm') { o.tracking_code = window.__lastCode = newCode(); } return o; }
 document.querySelectorAll('#helpForm, #donationForm, #memberForm').forEach(f => {
   const i = document.createElement('input');
   i.name = 'website'; i.tabIndex = -1; i.autocomplete = 'off'; i.setAttribute('aria-hidden', 'true');
@@ -183,7 +184,7 @@ document.querySelectorAll('#helpForm, #donationForm, #memberForm').forEach(f => 
   if (!ft || ft.querySelector('.flinks')) return;
   const d = document.createElement('div');
   d.className = 'flinks';
-  d.innerHTML = '<a href="index.html">হোম</a><a href="donate.html">অনুদান</a><a href="apply.html">সাহায্যের আবেদন</a><a href="member-login.html">সদস্য লগইন</a>';
+  d.innerHTML = '<a href="index.html">হোম</a><a href="donate.html">অনুদান</a><a href="apply.html">সাহায্যের আবেদন</a><a href="track.html">আবেদনের অবস্থা</a><a href="member-login.html">সদস্য লগইন</a>';
   const bottom = ft.querySelector('.footer-bottom');
   bottom ? ft.insertBefore(d, bottom) : ft.appendChild(d);
 })();

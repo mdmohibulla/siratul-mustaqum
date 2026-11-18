@@ -23,6 +23,9 @@
 <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px"><button class="button button-primary" id="b1" type="button">লগইন</button><button class="button button-outline" id="b2" type="button" style="color:#123d32;border-color:#123d32">নতুন নিবন্ধন</button></div>
 <form class="application-form" id="lf"><div class="form-grid"><label>মোবাইল নম্বর<input id="le" inputmode="tel" required placeholder="01XXXXXXXXX" autocomplete="username"></label><label>পাসওয়ার্ড<input id="lp" type="password" required autocomplete="current-password"></label></div><label class="consent"><input type="checkbox" id="lrem" checked> এই ডিভাইসে লগইন মনে রাখুন (বারবার লগইন করতে হবে না)</label>
 <button class="button button-primary" type="submit">লগইন করুন</button><p class="form-note" id="lm">পাসওয়ার্ড ভুলে গেলে সংগঠনের দায়িত্বশীলের সঙ্গে যোগাযোগ করুন।</p></form>
+<p style="text-align:center;margin:10px 0"><a href="#" id="forgot">পাসওয়ার্ড ভুলে গেছেন?</a></p>
+<form class="application-form" id="rsf" style="display:none"><div class="form-grid"><label>মোবাইল নম্বর<input id="rsp" inputmode="tel" required maxlength="25" placeholder="01XXXXXXXXX"></label><label>কিছু বলতে চান (ঐচ্ছিক)<input id="rsn" maxlength="200"></label></div>
+<button class="button button-primary" type="submit">রিসেটের অনুরোধ পাঠান</button><p class="form-note" id="rsm">অ্যাডমিন যাচাই করে আপনাকে নতুন অস্থায়ী পাসওয়ার্ড জানাবেন।</p></form>
 <form class="application-form" id="rf" style="display:none"><div class="form-grid">
 <label>পূর্ণ নাম<input id="rn" required maxlength="100"></label><label>মোবাইল নম্বর (এটাই আপনার লগইন)<input id="rph" required inputmode="tel" maxlength="25" placeholder="01XXXXXXXXX"></label>
 <label>ঠিকানা (জেলা/উপজেলা)<input id="ra" required maxlength="150"></label><label>পেশা<input id="ro" maxlength="100"></label>
@@ -32,6 +35,8 @@
 <script>const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';const $=id=>document.getElementById(id);
 const rpc=async(n,b)=>{try{const r=await fetch(URL_+'/rest/v1/rpc/'+n,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(b)});return r.ok?await r.json():null;}catch(e){return null;}};
 if(sessionStorage.getItem('mtk'))location.replace('dashboard.html');
+$('forgot').onclick=e=>{e.preventDefault();$('rsf').style.display=$('rsf').style.display==='none'?'':'none';};
+$('rsf').onsubmit=async e=>{e.preventDefault();$('rsm').textContent='অপেক্ষা করুন...';await rpc('member_request_reset',{p_phone:$('rsp').value,p_note:$('rsn').value});$('rsm').textContent='অনুরোধ পাঠানো হয়েছে। অ্যাডমিন যাচাই করে আপনাকে নতুন পাসওয়ার্ড জানাবেন।';};
 $('b1').onclick=()=>{$('lf').style.display='';$('rf').style.display='none';};
 $('b2').onclick=()=>{$('rf').style.display='';$('lf').style.display='none';};
 async function doLogin(ph,pw,msg){const rem=$('lrem')?$('lrem').checked:true;let j=await rpc('member_login',{p_phone:ph,p_password:pw,p_remember:rem});if(!j)j=await rpc('member_login',{p_phone:ph,p_password:pw});

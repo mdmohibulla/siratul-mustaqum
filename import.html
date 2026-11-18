@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><script src="admin-auth.js"></script><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>সদস্য একসাথে আনুন | অ্যাডমিন</title><link rel="stylesheet" href="admin-dark.css"></head><body>
+<header><strong>সদস্য একসাথে আনুন</strong><a href="panel.html">← ড্যাশবোর্ড</a></header><main>
+<div class="card hide" id="need">আগে <a href="panel.html">লগইন</a> করুন।</div>
+<div id="app" class="hide">
+<div class="card"><h3>১. ফাইল বা লেখা দিন</h3>
+<p style="color:#cbd5e1;margin:4px 0 10px">Excel বা Google Sheet থেকে CSV হিসেবে সেভ করে এখানে দিন, অথবা সরাসরি কপি করে নিচের ঘরে পেস্ট করুন। প্রথম সারিতে কলামের নাম থাকতে হবে: <b>নাম, ফোন, ঠিকানা, পেশা, মাসিক চাঁদা, যোগদান</b> (শুধু নাম ও ফোন বাধ্যতামূলক)।</p>
+<div class="bar"><input type="file" id="fl" accept=".csv,.txt,text/csv"><button id="tp" class="alt">নমুনা ফাইল নামান</button></div>
+<textarea id="tx" rows="6" placeholder="নাম,ফোন,ঠিকানা,পেশা,মাসিক চাঁদা" style="width:100%;box-sizing:border-box;margin-top:8px;background:#020617;color:#fff;border:1px solid #334155;border-radius:10px;padding:10px"></textarea>
+<div class="bar" style="margin-top:8px"><label>খালি থাকলে মাসিক চাঁদা: <input type="number" id="da" min="0" value="100" style="width:100px"></label>
+<label><input type="checkbox" id="lg" checked style="width:auto"> প্রত্যেকের জন্য লগইন তৈরি করুন (অস্থায়ী পাসওয়ার্ডসহ)</label></div>
+<button id="pv">প্রিভিউ দেখুন</button></div>
+<div class="card hide" id="pc"><h3>২. প্রিভিউ <span id="pn"></span></h3><div class="wrap"><table><thead><tr><th>#</th><th>নাম</th><th>ফোন</th><th>ঠিকানা</th><th>মাসিক</th><th>অবস্থা</th></tr></thead><tbody id="pb"></tbody></table></div>
+<button id="go" style="margin-top:10px">আমদানি করুন</button></div>
+<div class="card hide" id="rc"><h3>৩. ফল</h3><div class="bar"><button id="dl">লগইন তালিকা (CSV) নামান</button></div><div class="wrap"><table><thead><tr><th>নাম</th><th>ফোন</th><th>ফল</th><th>অস্থায়ী পাসওয়ার্ড</th><th></th></tr></thead><tbody id="rb"></tbody></table></div>
+<p style="color:#fbbf24">অস্থায়ী পাসওয়ার্ড শুধু এখানেই একবার দেখা যায়। ফাইল নামিয়ে বা WhatsApp-এ সদস্যদের পাঠিয়ে দিন, তাঁরা লগইন করে নিজের পাসওয়ার্ড বদলে নেবেন।</p></div>
+</div></main>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const token=sessionStorage.getItem('tk');const bn=n=>Number(n).toLocaleString('bn-BD');
+const dfmt=d=>new Date(d).toLocaleDateString('bn-BD');
+const intl=p=>{const d=String(p||'').replace(/\D/g,'');return d.startsWith('880')?d:(d.startsWith('0')?'880'+d.slice(1):d);};
+async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:{apikey:KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'return=minimal'}});
+ if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
+ if(!r.ok){alert('কাজ হয়নি: '+await r.text()+'\n(batch1_setup.sql চালানো হয়েছে কি না দেখুন)');throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
+let ROWS=[],RES=[];
+const norm=v=>{let d=String(v||'').replace(/\D/g,'');if(d.startsWith('880'))d=d.slice(3);if(d.startsWith('0'))d=d.slice(1);return /^1[3-9]\d{8}$/.test(d)?'0'+d:'';};
+function parse(t){t=t.replace(/^\ufeff/,'');const first=t.split(/\r?\n/)[0]||'';const dl=first.includes('\t')?'\t':(first.includes(';')&&!first.includes(',')?';':',');
+ const rows=[];let row=[],cur='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];
+  if(q){if(ch==='"'){if(t[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=ch;}
+  else if(ch==='"')q=true;else if(ch===dl){row.push(cur);cur='';}
+  else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;row.push(cur);cur='';if(row.some(x=>x.trim()))rows.push(row);row=[];}
+  else cur+=ch;}
+ row.push(cur);if(row.some(x=>x.trim()))rows.push(row);return rows;}
+const KEYS={name:['নাম','name'],phone:['ফোন','মোবাইল','মোবাইল নম্বর','phone','mobile'],area:['ঠিকানা','এলাকা','area','address'],occupation:['পেশা','occupation'],amount:['মাসিক চাঁদা','মাসিক','চাঁদা','amount'],joined:['যোগদান','joined']};
+function build(){const all=parse($('tx').value);if(all.length<2){alert('প্রথম সারিতে কলামের নাম আর নিচে অন্তত একজনের তথ্য দিন।');return false;}
+ const head=all[0].map(h=>h.trim().toLowerCase()),idx={};for(const k in KEYS){idx[k]=head.findIndex(h=>KEYS[k].some(x=>x.toLowerCase()===h));}
+ if(idx.name<0||idx.phone<0){alert('"নাম" ও "ফোন" কলাম খুঁজে পাওয়া যায়নি। প্রথম সারি দেখে নিন।');return false;}
+ const seen=new Set();ROWS=all.slice(1).map(r=>{const g=k=>idx[k]>=0?(r[idx[k]]||'').trim():'';const ph=norm(g('phone'));let st='ঠিক আছে';
+  if(!g('name'))st='নাম নেই';else if(!ph)st='নম্বর ঠিক নয়';else if(seen.has(ph))st='ফাইলে দুইবার';seen.add(ph);
+  return {name:g('name'),phone:g('phone'),np:ph,area:g('area'),occupation:g('occupation'),amount:g('amount')||$('da').value,joined:g('joined'),st};});return true;}
+function td(tr,t,cls){const c=document.createElement('td');c.textContent=t;if(cls)c.className=cls;tr.appendChild(c);}
+$('pv').onclick=()=>{if(!build())return;const b=$('pb');b.innerHTML='';let ok=0;
+ ROWS.forEach((r,i)=>{const tr=document.createElement('tr');td(tr,bn(i+1));td(tr,r.name);td(tr,r.np||r.phone);td(tr,r.area);td(tr,'৳ '+bn(r.amount||0));td(tr,r.st,r.st==='ঠিক আছে'?'ok':'late');if(r.st==='ঠিক আছে')ok++;b.appendChild(tr);});
+ $('pn').textContent='— '+bn(ok)+' জন আমদানির উপযোগী, '+bn(ROWS.length-ok)+'টি সমস্যাসহ';$('pc').classList.remove('hide');$('go').disabled=ok===0;};
+$('go').onclick=async()=>{const rows=ROWS.filter(r=>r.st==='ঠিক আছে').map(r=>({name:r.name,phone:r.phone,area:r.area,occupation:r.occupation,amount:r.amount,joined:r.joined,login:$('lg').checked}));
+ if(!rows.length)return;if(!confirm(bn(rows.length)+' জন সদস্য যোগ করা হবে। নিশ্চিত?'))return;$('go').disabled=true;
+ try{const r=await api('rpc/admin_import_members',{method:'POST',body:JSON.stringify({p_rows:rows})});RES=r||[];show();}catch(e){$('go').disabled=false;}};
+function show(){const b=$('rb');b.innerHTML='';RES.forEach(r=>{const tr=document.createElement('tr');td(tr,r.name);td(tr,r.phone);td(tr,r.status,r.status==='যোগ হয়েছে'?'ok':'late');td(tr,r.temp||'—');
+ const c=document.createElement('td');if(r.temp){const a=document.createElement('button');a.className='alt';a.textContent='WhatsApp';a.style.cssText='padding:5px 10px;font-size:13px';
+  a.onclick=()=>window.open('https://wa.me/'+intl(r.phone)+'?text='+encodeURIComponent('আসসালামু আলাইকুম '+r.name+', সিরাতুল মুস্তাকিম ফাউন্ডেশনের সদস্য হিসেবে আপনাকে যোগ করা হয়েছে। লগইন নম্বর: '+r.phone+' , অস্থায়ী পাসওয়ার্ড: '+r.temp+' । লগইন করে প্রোফাইল থেকে পাসওয়ার্ড বদলে নিন।'),'_blank');c.appendChild(a);}
+ tr.appendChild(c);b.appendChild(tr);});$('rc').classList.remove('hide');$('pc').classList.add('hide');}
+const q=v=>{let s=String(v??'');if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+function save(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+text],{type:'text/csv;charset=utf-8'}));a.download=name;a.click();}
+$('dl').onclick=()=>save('login-list.csv',['নাম,ফোন,অস্থায়ী পাসওয়ার্ড,ফল'].concat(RES.map(r=>[r.name,r.phone,r.temp||'',r.status].map(q).join(','))).join('\n'));
+$('tp').onclick=()=>save('member-template.csv','নাম,ফোন,ঠিকানা,পেশা,মাসিক চাঁদা,যোগদান\nনমুনা সদস্য,01712345678,খুলনা,ছাত্র,100,2026-11-01');
+$('fl').onchange=()=>{const f=$('fl').files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('tx').value=r.result;};r.readAsText(f,'utf-8');};
+function load(){}
+if(token){$('app').classList.remove('hide');load();}else $('need').classList.remove('hide');
+</script></body></html>
