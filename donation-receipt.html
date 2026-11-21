@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="bn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>দানের রসিদ | সিরাতুল মুস্তাকিম ফাউন্ডেশন</title>
+<link rel="icon" href="favicon.png"><link rel="stylesheet" href="report.css">
+<style>
+.hide{display:none!important}
+.fm{max-width:794px;margin:0 auto 12px;box-sizing:border-box;background:#fff;border-radius:14px;padding:16px;display:grid;gap:10px;grid-template-columns:1fr 1fr auto;align-items:end}
+.fm label{display:block;font-size:14px;color:#374151}.fm input{display:block;width:100%;box-sizing:border-box;margin-top:4px;padding:10px;border:1px solid #9ca3af;border-radius:8px;font-size:15px;font-family:inherit}
+.fm button{background:#15803d;color:#fff;border:0;padding:11px 18px;border-radius:10px;font-size:15px;cursor:pointer;font-family:inherit}
+#st{max-width:794px;margin:0 auto 10px;padding:0 10px;color:#374151;font-size:15px}
+.msg{margin:16px 0 4px;line-height:1.9;font-size:16px;color:#1f2937}
+.sig{margin-top:34px;display:flex;justify-content:space-between;font-size:14px;color:#374151}.sig div{border-top:1px solid #6b7280;padding-top:4px;min-width:170px;text-align:center}
+@media (max-width:640px){.fm{grid-template-columns:1fr}}
+</style></head><body>
+<div class="tool"><a href="index.html">← হোমে ফিরুন</a></div>
+<form class="fm" id="rf"><label>TrxID<input id="rt" required maxlength="40" placeholder="মেসেজে থাকা TrxID" autocomplete="off"></label>
+<label>যে নম্বর থেকে টাকা পাঠিয়েছেন<input id="rs" required inputmode="tel" maxlength="25" placeholder="01XXXXXXXXX" autocomplete="off"></label><button type="submit">রসিদ দেখুন</button></form>
+<p id="st"></p>
+<div class="tool hide" id="tools"><button id="dl">📄 PDF ডাউনলোড</button><button id="pr" class="alt">🖨️ প্রিন্ট</button><span id="ds"></span></div>
+<div class="sheet hide" id="report">
+<div class="rh"><img src="logo.png" alt=""><div><h1>সিরাতুল মুস্তাকিম ফাউন্ডেশন</h1><div>মানবতার পাশে, অসহায়দের জন্য</div></div></div>
+<div class="rtitle">দান প্রাপ্তি রসিদ ও ধন্যবাদপত্র</div>
+<table class="rt" id="rt2"></table>
+<p class="msg">মহান আল্লাহ আপনার দান কবুল করুন এবং আপনাকে উত্তম প্রতিদান দিন। আপনার এই সহযোগিতা অসহায় মানুষের পাশে দাঁড়াতে আমাদের শক্তি যোগাবে। জাযাকাল্লাহু খাইরান।</p>
+<div style="text-align:right"><span class="stamp">✓ আদায়কৃত</span></div>
+<div class="sig"><span></span><div>কর্তৃপক্ষের স্বাক্ষর</div></div>
+<div class="foot">এই রসিদটি সংগঠনের অনলাইন হিসাব থেকে তৈরি। কোনো প্রশ্ন থাকলে সংগঠনের দায়িত্বশীলের সঙ্গে যোগাযোগ করুন।</div></div>
+<script src="pdfutil.js"></script>
+<script>
+const URL_='https://dgsxzwutsstfsezvlkmh.supabase.co',KEY='sb_publishable_27L6UJCzRDDD9xEZ4733OQ_dLsY0oDE';
+const $=id=>document.getElementById(id);const bn=n=>Number(n).toLocaleString('bn-BD');let FN='donation-receipt.pdf';
+function row(a,b,cls){const tr=document.createElement('tr');const t1=document.createElement('td');t1.textContent=a;const t2=document.createElement('td');t2.textContent=b;if(cls)t2.className=cls;tr.appendChild(t1);tr.appendChild(t2);$('rt2').appendChild(tr);}
+async function look(){const st=$('st');st.textContent='খোঁজা হচ্ছে...';$('report').classList.add('hide');$('tools').classList.add('hide');
+ let j=null;try{const r=await fetch(URL_+'/rest/v1/rpc/donation_receipt',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({p_trx:$('rt').value,p_sender:$('rs').value})});j=r.ok?await r.json():null;}catch(e){}
+ if(!j){st.textContent='সংযোগে সমস্যা, আবার চেষ্টা করুন।';return;}
+ if(!j.found){st.textContent='কোনো দান পাওয়া যায়নি। TrxID আর যে নম্বর থেকে টাকা পাঠিয়েছেন সেটা ঠিকমতো দিয়েছেন কি না দেখুন।';return;}
+ if(!j.verified){st.textContent='আপনার দানের তথ্য আমরা পেয়েছি, তবে এখনও যাচাই চলছে। যাচাই শেষ হলে এই পেজেই রসিদ পাবেন। জাযাকাল্লাহু খাইরান।';return;}
+ st.textContent='';$('rt2').innerHTML='';const code='SMF-D-'+String(j.id).slice(0,8).toUpperCase();
+ row('রসিদ নং',code);row('তারিখ',new Date(j.created_at).toLocaleDateString('bn-BD'));row('দাতার নাম',j.donor_name);row('দানের পরিমাণ','৳ '+bn(j.amount),'amt');row('তহবিল',j.fund||'সাধারণ');row('মাধ্যম',j.method);row('TrxID',j.trx_id);
+ FN='donation-receipt-'+code+'.pdf';$('report').classList.remove('hide');$('tools').classList.remove('hide');}
+$('rf').onsubmit=e=>{e.preventDefault();look();};
+const qs=new URLSearchParams(location.search);if(qs.get('t')&&qs.get('s')){$('rt').value=qs.get('t');$('rs').value=qs.get('s');look();}
+$('dl').onclick=async()=>{$('ds').textContent='তৈরি হচ্ছে...';try{await savePdf($('report'),FN);$('ds').textContent='ডাউনলোড হয়েছে ✓';}catch(e){$('ds').textContent=e.message+' — "প্রিন্ট" চেপে "Save as PDF" বেছে নিন।';}};
+$('pr').onclick=()=>window.print();
+</script></body></html>

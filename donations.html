@@ -16,6 +16,8 @@ async function api(p,o={}){const r=await fetch(URL_+'/rest/v1/'+p,{...o,headers:
  if(r.status===401){if(window.adminRefresh&&adminRefresh()){location.reload();return null;}sessionStorage.removeItem('tk');location.href='panel.html';return null;}
  if(!r.ok){alert('কাজ হয়নি: '+await r.text());throw 0;}const t=await r.text();return t?JSON.parse(t):null;}
 let FN=[];
+const intl=p=>{const x=String(p||'').replace(/\D/g,'');return x.startsWith('880')?x:(x.startsWith('0')?'880'+x.slice(1):x);};
+const rcUrl=d=>new URL('donation-receipt.html?t='+encodeURIComponent(d.trx_id||'')+'&s='+encodeURIComponent(d.sender_number||''),location.href).href;
 async function load(){
  if(!FN.length){try{const r=await fetch(URL_+'/rest/v1/funds?select=name&order=sort,name',{headers:{apikey:KEY,Authorization:'Bearer '+token}});if(r.ok)FN=(await r.json()).map(x=>x.name);}catch(e){}}
  const rows=await api('donations?select=*&order=created_at.desc&limit=300')||[];
@@ -26,6 +28,8 @@ async function load(){
   if(d.verified)ok+=Number(d.amount);else wait++;
   const ac=c('');const b=(t,cls,fn)=>{const x=document.createElement('button');x.textContent=t;if(cls)x.className=cls;x.onclick=fn;ac.appendChild(x);};
   if(!d.verified)b('যাচাই হয়েছে','',async()=>{await api('donations?id=eq.'+d.id,{method:'PATCH',body:JSON.stringify({verified:true})});load();});
+  if(d.verified){b('🧾 রসিদ','alt',()=>window.open(rcUrl(d),'_blank'));
+   if(d.sender_number)b('💬 ধন্যবাদ বার্তা','alt',()=>window.open('https://wa.me/'+intl(d.sender_number)+'?text='+encodeURIComponent('আসসালামু আলাইকুম '+d.donor_name+', আপনার ৳ '+bn(d.amount)+' দান আমরা পেয়েছি। জাযাকাল্লাহু খাইরান, আল্লাহ আপনার দান কবুল করুন। আপনার রসিদ: '+rcUrl(d)+' — সিরাতুল মুস্তাকিম ফাউন্ডেশন'),'_blank'));}
   b('তহবিল','alt',async()=>{const v=prompt('কোন তহবিলে ধরা হবে? ('+(FN.join(' / ')||'সাধারণ')+')',d.fund||'সাধারণ');if(!v)return;await api('donations?id=eq.'+d.id,{method:'PATCH',body:JSON.stringify({fund:v.trim()})});load();});
   b('মুছুন','alt red',async()=>{if(confirm('এই এন্ট্রি মুছবেন?')){await api('donations?id=eq.'+d.id,{method:'DELETE'});load();}});
   tb.appendChild(tr);});

@@ -184,7 +184,7 @@ document.querySelectorAll('#helpForm, #donationForm, #memberForm').forEach(f => 
   if (!ft || ft.querySelector('.flinks')) return;
   const d = document.createElement('div');
   d.className = 'flinks';
-  d.innerHTML = '<a href="index.html">হোম</a><a href="donate.html">অনুদান</a><a href="apply.html">সাহায্যের আবেদন</a><a href="track.html">আবেদনের অবস্থা</a><a href="member-login.html">সদস্য লগইন</a>';
+  d.innerHTML = '<a href="index.html">হোম</a><a href="donate.html">অনুদান</a><a href="apply.html">সাহায্যের আবেদন</a><a href="track.html">আবেদনের অবস্থা</a><a href="donation-receipt.html">দানের রসিদ</a><a href="member-login.html">সদস্য লগইন</a>';
   const bottom = ft.querySelector('.footer-bottom');
   bottom ? ft.insertBefore(d, bottom) : ft.appendChild(d);
 })();
